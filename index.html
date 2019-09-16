@@ -5,7 +5,8 @@
         <title>Mtg Deck Builder</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+        <!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css"> -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet" />
 
         <style>
 
@@ -20,14 +21,6 @@
                 border-color: #0088cc !important;
             }
 
-            /*#selectable .ui-selecting {
-                background: #ccc;
-            }
-
-            #selectable .ui-selected {
-                background: #999;
-            }*/
-
         </style>
 
     </head>
@@ -37,17 +30,29 @@
             This project uses the ScryFall api (https://scryfall.com/docs/api)
 
             <div class="row">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <h4 class="mt-5">Horde Survival</h4>
+                    <button id="addZombie" class="btn btn-sm btn-danger ml-2" title="Add Zombie">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button id="takeTurn" class="btn btn-sm btn-primary ml-2" title="Take Turn">
+                        <i class="fas fa-forward"></i>
+                    </button>
                 </div>
+            </div>
 
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <button id="draw" class="btn btn-sm btn-primary ml-2">Draw</button>
-                    </div>
-                    <div class="input-group">
-                        <button id="add_zombie" class="btn btn-sm btn-primary ml-2">Add Zombie</button>
-                    </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Hand: </label><span class="hand"></span>
+                </div>
+                <div class="col-md-3">
+                    <label>Library: </label><span class="library"></span>
+                </div>
+                <div class="col-md-3">
+                    <label>Graveyard: </label><span class="graveyard"></span>
+                </div>
+                <div class="col-md-3">
+                    <label>Exile: </label><span class="exile"></span>
                 </div>
             </div>
 
@@ -60,10 +65,13 @@
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.2/d3.min.js"></script>
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <!-- <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+        <script src="https://kit.fontawesome.com/131ba7f97d.js"></script>
+
 
         <script>
 
@@ -125,7 +133,7 @@ var Player = function(library) {
         },
         "Damnation": function() {
             // destroy all creatures
-            self.boardWipe('graveyard');
+            self.boardWipe('graveyard', 'Creature');
         },
         "Army of the Damned": function() {
             // create 13 zombies
@@ -163,6 +171,15 @@ var Player = function(library) {
             }
         }
     }
+
+    this.updateCounts();
+}
+
+Player.prototype.updateCounts = function() {
+    $('.hand').text(this.zones.hand.length);
+    $('.library').text(this.zones.library.length);
+    $('.graveyard').text(this.zones.graveyard.length);
+    $('.exile').text(this.zones.exile.length);
 }
 
 Player.prototype.takeTurn = function() {
@@ -183,12 +200,17 @@ Player.prototype.takeTurn = function() {
 
 Player.prototype.drawCard = function() {
     if (!this.zones.library.length) {
+        toastr.warning("No cards in library!");
         return;
     }
+
+    toastr.success("Horde drew a card");
 
     // draw card from 'library' and put into 'hand'
     var card = this.zones.library.shift();
     this.zones.hand.push(card);
+
+    this.updateCounts();
 }
 
 Player.prototype.castSpells = function() {
@@ -200,10 +222,14 @@ Player.prototype.castSpells = function() {
             self.castSpells();
         });
     }
+
+    this.updateCounts();
 }
 
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
+
+    toastr.info("Horde cast a spell");
 
     Swal.fire({
         title: card.name,
@@ -211,7 +237,8 @@ Player.prototype.castSpell = function(card, callback) {
         showCancelButton: true,
         focusConfirm: false,
         confirmButtonText: 'Resolve',
-        cancelButtonText: 'Cancel'
+        cancelButtonText: 'Cancel',
+        animation: false
     }).then(function(result){
         if (!result.value) {
             self.zones.graveyard.push(card);
@@ -223,12 +250,14 @@ Player.prototype.castSpell = function(card, callback) {
     });
 }
 
-Player.prototype.boardWipe = function(zone) {
-    $('.mtgcard').trigger('change_zone', zone || 'graveyard');
+Player.prototype.boardWipe = function(zone, cardType) {
+    $('.mtgcard').trigger('change_zone', {zone: zone || 'graveyard', cardType: cardType});
 }
 
 Player.prototype.resolveSpell = function(card, callback) {
     var self = this;
+
+    toastr.success("Horde spell resolved");
 
     if ('Sorcery' != card.type_line && 'Instant' != card.type_line) {
         this._idx++;
@@ -256,7 +285,7 @@ Player.prototype.resolveSpell = function(card, callback) {
                         if (zone) {
                             var $elems = $('.mtgcard.selected');
                             if ($elems.length) {
-                                $elems.trigger('change_zone', zone);
+                                $elems.trigger('change_zone', {zone: zone});
                                 return;
                             }
 
@@ -266,13 +295,19 @@ Player.prototype.resolveSpell = function(card, callback) {
                         }
                     });
                 }).on('click', function(e){
-                    if (e.ctrlKey) {
-                        $(e.target).toggleClass('selected');
+                    $(e.target).toggleClass('selected');
+                }).on('change_zone', function(e, args){
+                    if (args.cardType && -1 == card.type_line.indexOf(args.cardType)) {
+                        return;
                     }
-                }).on('change_zone', function(e, zone){
+
+                    toastr.info(card.name + " was put into " + args.zone + " from the battlefield.");
+
                     delete self.zones.battlefield[idx];
-                    self.zones[zone].push(card);
+                    self.zones[args.zone].push(card);
                     $(this).remove();
+
+                    self.updateCounts();
                 })
         );
     } else {
@@ -298,8 +333,6 @@ function fetchCard(card_name, callback) {
     }).done(callback)
 }
 
-// var zombie;
-
 var deck = [];
 d3.csvParse(data, function(d) {
     fetchCard(d.name, function(card) {
@@ -324,12 +357,12 @@ var player = new Player(deck);
 
 
 
-$('#draw').on('click', function(e) {
+$('#takeTurn').on('click', function(e) {
     player.takeTurn();
 });
 
-$('#add_zombie').on('click', function(e) {
-    player.castSpell(zombie);
+$('#addZombie').on('click', function(e) {
+    player.resolveSpell(zombie);
 });
 
 
