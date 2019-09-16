@@ -108,6 +108,13 @@ var zombie;
 
 
 
+toastr.options = {
+    "closeButton": true,
+    "newestOnTop": true,
+    "timeOut": 2000
+};
+
+
 
 
 var Player = function(library) {
@@ -204,7 +211,7 @@ Player.prototype.drawCard = function() {
         return;
     }
 
-    toastr.success("Horde drew a card");
+    toastr.success("Drew a card");
 
     // draw card from 'library' and put into 'hand'
     var card = this.zones.library.shift();
@@ -229,7 +236,7 @@ Player.prototype.castSpells = function() {
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
 
-    toastr.info("Horde cast a spell");
+    toastr.info("Cast " + card.name);
 
     Swal.fire({
         title: card.name,
@@ -257,7 +264,7 @@ Player.prototype.boardWipe = function(zone, cardType) {
 Player.prototype.resolveSpell = function(card, callback) {
     var self = this;
 
-    toastr.success("Horde spell resolved");
+    toastr.success(card.name + " resolved");
 
     if ('Sorcery' != card.type_line && 'Instant' != card.type_line) {
         this._idx++;
@@ -311,7 +318,6 @@ Player.prototype.resolveSpell = function(card, callback) {
                 })
         );
     } else {
-        console.log("TODO", card);
         this.zones.graveyard.push(card);
     }
 
