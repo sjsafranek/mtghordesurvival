@@ -1,0 +1,339 @@
+<html>
+    <head><meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Mtg Deck Builder</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+
+        <style>
+
+            .mtgcard {
+                margin: 1px;
+                border: 4px solid #ffffff;
+                border-radius: 8px;
+                transition: border-color 0.3s linear;
+            }
+
+            .mtgcard.selected {
+                border-color: #0088cc !important;
+            }
+
+            /*#selectable .ui-selecting {
+                background: #ccc;
+            }
+
+            #selectable .ui-selected {
+                background: #999;
+            }*/
+
+        </style>
+
+    </head>
+    <body>
+        <main role="main" class="container">
+
+            This project uses the ScryFall api (https://scryfall.com/docs/api)
+
+            <div class="row">
+                <div class="col-md-8">
+                    <h4 class="mt-5">Horde Survival</h4>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <button id="draw" class="btn btn-sm btn-primary ml-2">Draw</button>
+                    </div>
+                    <div class="input-group">
+                        <button id="add_zombie" class="btn btn-sm btn-primary ml-2">Add Zombie</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 battlefield">
+                </div>
+            </div>
+
+        </main>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.2/d3.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+
+        <script>
+
+
+var zombie;
+
+//
+// var Stack = function() {
+//     this.dataStore = [];
+//     this.top = 0;
+// }
+//
+// Stack.prototype.push = function(card) {
+//     this.dataStore[this.top++] = card;
+// }
+//
+// Stack.prototype.pop = function() {
+//     return this.dataStore[--this.top];
+// }
+//
+// Stack.prototype.peek = function() {
+//     return this.dataStore[this.top-1];
+// }
+//
+// Stack.prototype.length = function() {
+//     return this.top;
+// }
+//
+// Stack.prototype,clear = function() {
+//     this.top = 0;
+// }
+//
+//
+
+
+
+
+
+var Player = function(library) {
+    var self = this;
+
+    this.zones = {
+        exile: [],
+        graveyard: [],
+        library: library || [],
+        hand: [],
+        battlefield: {},
+        stack: [],
+        command: []
+    }
+
+    this._idx = 0;
+
+    this._callbacks = {
+        "Grave Titan": function() {
+            // etb create two tokens
+            self.resolveSpell(zombie);
+            self.resolveSpell(zombie);
+        },
+        "Damnation": function() {
+            // destroy all creatures
+            self.boardWipe('graveyard');
+        },
+        "Army of the Damned": function() {
+            // create 13 zombies
+            for (var i=0; i<13; i++) {
+                self.resolveSpell(zombie);
+            }
+
+            // has flashback
+            if (self.zones.graveyard.length && 'Army of the Damned' == self.zones.graveyard[self.zones.graveyard.length-1].name) {
+                var card = self.zones.graveyard.pop();
+                self.castSpell(card, function(){
+                    if (self.zones.graveyard.length && 'Army of the Damned' == self.zones.graveyard[self.zones.graveyard.length-1].name) {
+                        var card = self.zones.graveyard.pop();
+                        self.zones.exile.push(card);
+                    }
+                });
+            }
+        },
+        "Twilight's Call": function() {
+            // all creatures from graveyard to battlefield
+            var noncreatures = [];
+            while(self.zones.graveyard.length) {
+                var card = self.zones.graveyard.shift();
+                if (-1 != card.type_line.indexOf('Creature')) {
+                    self.resolveSpell(card);
+                } else {
+                    noncreatures.push(card);
+                }
+            }
+
+            // put noncreatures spells back into graveyard
+            while(noncreatures.length) {
+                var card = noncreatures.shift();
+                self.zones.graveyard.push(card);
+            }
+        }
+    }
+}
+
+Player.prototype.takeTurn = function() {
+    if (!this.zones.library.length) {
+        $('#draw').addClass('disabled');
+        return;
+    }
+
+    this.drawCard();
+    var newCard = this.zones.hand[this.zones.hand.length-1];
+    while(-1 != ['Zombie', 'Zombie Giant'].indexOf(newCard.name)) {
+        this.drawCard();
+        var newCard = this.zones.hand[this.zones.hand.length-1];
+    }
+
+    this.castSpells();
+}
+
+Player.prototype.drawCard = function() {
+    if (!this.zones.library.length) {
+        return;
+    }
+
+    // draw card from 'library' and put into 'hand'
+    var card = this.zones.library.shift();
+    this.zones.hand.push(card);
+}
+
+Player.prototype.castSpells = function() {
+    var self = this;
+    // cast all spells from hand
+    if (this.zones.hand.length) {
+        var card = this.zones.hand.shift();
+        this.castSpell(card, function() {
+            self.castSpells();
+        });
+    }
+}
+
+Player.prototype.castSpell = function(card, callback) {
+    var self = this;
+
+    Swal.fire({
+        title: card.name,
+        imageUrl: card.image_uris.normal,
+        showCancelButton: true,
+        focusConfirm: false,
+        confirmButtonText: 'Resolve',
+        cancelButtonText: 'Cancel'
+    }).then(function(result){
+        if (!result.value) {
+            self.zones.graveyard.push(card);
+            callback && callback();
+            return;
+        }
+
+        self.resolveSpell(card, callback);
+    });
+}
+
+Player.prototype.boardWipe = function(zone) {
+    $('.mtgcard').trigger('change_zone', zone || 'graveyard');
+}
+
+Player.prototype.resolveSpell = function(card, callback) {
+    var self = this;
+
+    if ('Sorcery' != card.type_line && 'Instant' != card.type_line) {
+        this._idx++;
+        var idx = 0+this._idx;
+        this.zones.battlefield[idx] = card;
+
+        $('.battlefield').append(
+            $('<img>', {src: card.image_uris.small})
+                .addClass('mtgcard')
+                .on('contextmenu', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Select zone',
+                        input: 'select',
+                        inputOptions: {
+                            exile: 'exile',
+                            graveyard: 'graveyard',
+                            library: 'library',
+                            hand: 'hand'
+                        },
+                        inputPlaceholder: 'Select a zone',
+                        showCancelButton: true
+                    }).then(function(result) {
+                        var zone = result.value;
+                        if (zone) {
+                            var $elems = $('.mtgcard.selected');
+                            if ($elems.length) {
+                                $elems.trigger('change_zone', zone);
+                                return;
+                            }
+
+                            $(e.target).remove();
+                            delete self.zones.battlefield[idx];
+                            self.zones[zone].push(card);
+                        }
+                    });
+                }).on('click', function(e){
+                    if (e.ctrlKey) {
+                        $(e.target).toggleClass('selected');
+                    }
+                }).on('change_zone', function(e, zone){
+                    delete self.zones.battlefield[idx];
+                    self.zones[zone].push(card);
+                    $(this).remove();
+                })
+        );
+    } else {
+        console.log("TODO", card);
+        this.zones.graveyard.push(card);
+    }
+
+    callback && callback();
+
+    this._callbacks[card.name] && this._callbacks[card.name]();
+}
+
+
+
+
+// Build deck
+var data = 'count,name\n1,Call to the Grave\n2,Bad Moon\n1,Plague Wind\n1,Damnation\n1,Yixlid Jailer\n1,Forsaken Wastes\n2,Nested Ghoul\n2,Infectious Horror\n2,Delirium Skeins\n1,Blind Creeper\n2,Soulless One\n2,Vengeful Dead\n1,Fleshbag Marauder\n1,Carrion Wurm\n3,Maggot Carrier\n4,Cackling Fiend\n1,Death Baron\n1,Grave Titan\n2,Severed Legion\n1,Skulking Knight\n1,Undead Warchief\n1,Twilights Call\n1,Army of the Damned\n1,Endless Ranks of the Dead\n2,Rotting Fensnake\n1,Unbreathing Horde\n1,Walking Corpse\n5,Zombie Giant\n55,Zombie';
+
+function fetchCard(card_name, callback) {
+    $.ajax({
+        method: 'GET',
+        url: 'https://api.scryfall.com/cards/named?exact=' + card_name,
+    }).done(callback)
+}
+
+// var zombie;
+
+var deck = [];
+d3.csvParse(data, function(d) {
+    fetchCard(d.name, function(card) {
+        var count = parseInt(d.count);
+        for (var i=0; i<count; i++) {
+            deck.push(card);
+            if ('Zombie' == card.name) {
+                zombie = card;
+            }
+            deck = d3.shuffle(deck);
+        }
+    });
+});
+
+
+
+var player = new Player(deck);
+
+
+
+
+
+
+
+$('#draw').on('click', function(e) {
+    player.takeTurn();
+});
+
+$('#add_zombie').on('click', function(e) {
+    player.castSpell(zombie);
+});
+
+
+        </script>
+
+    </body>
+</html>
