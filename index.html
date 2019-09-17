@@ -21,6 +21,15 @@
                 border-color: #0088cc !important;
             }
 
+            .zoneButton {
+                cursor: pointer;
+                transition: color 0.3s linear;
+            }
+
+            .zoneButton:hover {
+                color: #0088cc !important;
+            }
+
         </style>
 
     </head>
@@ -29,6 +38,8 @@
         <main role="main" class="container">
 
             This project uses the ScryFall api (https://scryfall.com/docs/api)
+
+            https://www.quietspeculation.com/2011/09/horde-magic-a-new-way-to-play-magic-and-survive-zombie-invasions/
 
             <div class="row">
                 <div class="col-md-12">
@@ -44,16 +55,16 @@
 
             <div class="row">
                 <div class="col-md-3">
-                    <label>Hand: </label><span class="hand"></span>
+                    <label><i class="fas fa-eye zoneButton zoneHand"></i> Hand: </label><span class="hand"></span>
                 </div>
                 <div class="col-md-3">
-                    <label>Library: </label><span class="library"></span>
+                    <label><i class="fas fa-eye zoneButton zoneLibrary"></i> Library: </label><span class="library"></span>
                 </div>
                 <div class="col-md-3">
-                    <label>Graveyard: </label><span class="graveyard"></span>
+                    <label><i class="fas fa-eye zoneButton zoneGraveyard"></i> Graveyard: </label><span class="graveyard"></span>
                 </div>
                 <div class="col-md-3">
-                    <label>Exile: </label><span class="exile"></span>
+                    <label><i class="fas fa-eye zoneButton zoneExile"></i> Exile: </label><span class="exile"></span>
                 </div>
             </div>
 
@@ -181,6 +192,8 @@ var Player = function() {
         command: new Zone()
     }
 
+    // TODO
+    //  - Fix callbacks for Backbone Model
     this._callbacks = {
         "Grave Titan": function() {
             // etb create two tokens
@@ -230,6 +243,73 @@ var Player = function() {
     }
 
     this.updateCounts();
+    this.addListeners();
+}
+
+Player.prototype.addListeners = function() {
+    var self = this;
+
+    var collectOptions = function(zone) {
+        var inputOptions = {};
+        zone.forEach(function(card) {
+            inputOptions[card.cid] = card.getName();
+        });
+        return inputOptions;
+    }
+
+    var selectCardFromZone = function(zone) {
+        return {
+            title: 'Select a card',
+            input: 'select',
+            inputOptions: collectOptions(zone),
+            inputPlaceholder: 'Select a card',
+            showCancelButton: true
+        };
+    }
+
+    var selectAndChangeCardZone = function(zone) {
+        Swal.queue([
+            selectCardFromZone(zone),
+            {
+                title: 'Select zone',
+                input: 'select',
+                inputOptions: {
+                    exile: 'exile',
+                    graveyard: 'graveyard',
+                    library: 'library',
+                    hand: 'hand'
+                },
+                inputPlaceholder: 'Select a zone',
+                showCancelButton: true
+            }
+        ]).then(function(result){
+            if (result.value) {
+                var cid = result.value[0];
+                var newZone = result.value[1];
+                var card = zone.get(cid);
+                zone.remove(card);
+                self.zones[newZone].add(card);
+                self.updateCounts();
+            }
+        });
+    }
+
+    $('.zoneHand').on('click', function(e) {
+        selectAndChangeCardZone(self.zones.hand);
+    });
+
+    $('.zoneLibrary').on('click', function(e) {
+        selectAndChangeCardZone(self.zones.library);
+    });
+
+    $('.zoneGraveyard').on('click', function(e) {
+        selectAndChangeCardZone(self.zones.graveyard);
+    });
+
+    $('.zoneExile').on('click', function(e) {
+        selectAndChangeCardZone(self.zones.exile);
+    });
+
 }
 
 Player.prototype.updateCounts = function() {
