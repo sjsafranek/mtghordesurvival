@@ -386,6 +386,7 @@ Player.prototype.addListeners = function() {
                 var card = zone.get(cid);
                 zone.remove(card);
                 self.zones[newZone].add(card);
+                toast('info', card.getName() + ' moved from ' + zone + ' to ' + newZone);
                 self.updateCounts();
             }
         });
