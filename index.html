@@ -45,7 +45,7 @@
                 width: 100%;
                 height: 60px; /* Set the fixed height of the footer here */
                 line-height: 60px; /* Vertically center the text there */
-                background-color: #f5f5f5;
+                /*background-color: #f5f5f5;*/
             }
             /* .end */
 
@@ -55,54 +55,114 @@
 
 
 
+            /*
+             * Sidebar
+             */
+
+            .sidebar {
+              position: fixed;
+              top: 0;
+              bottom: 0;
+              right: 0;
+              padding-top: 48px;
+              padding-bottom: 48px;
+              z-index: 10;
+              box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            }
+
+            .sidebar-sticky {
+              position: relative;
+              top: 0;
+              /*height: calc(100vh - 48px);*/
+              height: calc(100vh - 96px);
+              padding-top: .5rem;
+              /*overflow-x: scroll;*/
+              overflow-y: auto;
+            }
+
+
+
+
+            #gameLog {
+                font: 0.6rem Inconsolata, monospace;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+
+            /*#log {
+                background-color: black;
+                background-image: radial-gradient(
+                    rgba(0, 150, 0, 0.75), black 120%
+                );
+                height: 100vh;
+            }*/
+
+
+
+
         </style>
 
     </head>
     <body>
 
-        <main role="main" class="container">
-
+        <div class="container-fluid">
             <div class="row">
-                <div class="col-md-12">
-                    <h4 class="mt-5">Horde Survival</h4>
-                    <button id="addZombie" class="btn btn-sm btn-danger ml-2" title="Add Zombie">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button id="takeTurn" class="btn btn-sm btn-primary ml-2" title="Take Turn">
-                        <i class="fas fa-forward"></i>
-                    </button>
-                </div>
+
+                <main role="main" class="col-md-9">
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="mt-5">Horde Survival</h4>
+                            <button id="addZombie" class="btn btn-sm btn-danger ml-2" title="Add Zombie">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button id="takeTurn" class="btn btn-sm btn-primary ml-2" title="Take Turn">
+                                <i class="fas fa-forward"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label><i class="fas fa-eye zoneButton zoneHand"></i> Hand: </label><span class="handCount"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label><i class="fas fa-eye zoneButton zoneBattlefield"></i> Battlefield: </label><span class="battlefieldCount"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label><i class="fas fa-eye zoneButton zoneLibrary"></i> Library: </label><span class="libraryCount"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label><i class="fas fa-eye zoneButton zoneGraveyard"></i> Graveyard: </label><span class="graveyardCount"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <label><i class="fas fa-eye zoneButton zoneExile"></i> Exile: </label><span class="exileCount"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 battlefield">
+                        </div>
+                        <!-- <div class="col-md-3" id="log"></div> -->
+                    </div>
+
+                    <div id="card_container"></div>
+
+                </main>
+
+                <nav class="col-md-3 d-none d-md-block bg-light sidebar">
+                    <div class="sidebar-sticky">
+                        <div id="gameLog">
+                        </div>
+                    </div>
+                </nav>
+
             </div>
-
-            <div class="row">
-                <div class="col-md-2">
-                    <label><i class="fas fa-eye zoneButton zoneHand"></i> Hand: </label><span class="handCount"></span>
-                </div>
-                <div class="col-md-2">
-                    <label><i class="fas fa-eye zoneButton zoneBattlefield"></i> Battlefield: </label><span class="battlefieldCount"></span>
-                </div>
-                <div class="col-md-2">
-                    <label><i class="fas fa-eye zoneButton zoneLibrary"></i> Library: </label><span class="libraryCount"></span>
-                </div>
-                <div class="col-md-2">
-                    <label><i class="fas fa-eye zoneButton zoneGraveyard"></i> Graveyard: </label><span class="graveyardCount"></span>
-                </div>
-                <div class="col-md-2">
-                    <label><i class="fas fa-eye zoneButton zoneExile"></i> Exile: </label><span class="exileCount"></span>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-12 battlefield">
-                </div>
-            </div>
-
-            <div id="card_container"></div>
-
-        </main>
+        </div>
 
 
-        <footer class="footer">
+        <footer class="footer bg-light">
           <div class="container">
             <span class="text-muted">
                 This project uses the <a href="https://scryfall.com/docs/api">ScryFall api</a>.
@@ -207,6 +267,16 @@ toastr.options = {
     "timeOut": 2000
 };
 
+function toast(level, message) {
+    // toastr[level](message).attr('style', 'height: 38px !important; width: 240px !important; vertical-align: middle; padding-top: 10px; font-size: small;');
+    var $elem = $('<div>').append(
+        new Date().toISOString().split('.')[0],
+        ': ',
+        message,
+    );
+    $('#gameLog').append($elem);
+    $elem.get(0).scrollIntoView();
+}
 
 
 var Player = function() {
@@ -368,10 +438,10 @@ Player.prototype.takeTurn = function() {
 
 Player.prototype.drawCard = function() {
     if (!this.zones.library.length) {
-        toastr.warning("No cards in library!");
+        toast('warning', 'No cards in library!');
         return;
     }
-    toastr.success("Draw a card");
+    toast('success', 'Draw a card');
     var card = this.zones.library.chooseRandom();
     this.zones.library.remove(card);
     this.zones.hand.add(card);
@@ -409,7 +479,7 @@ Player.prototype.getCardsByType = function(cardType, zone) {
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
 
-    toastr.info("Cast " + card.getName());
+    toast('info', 'Cast ' + card.getName());
 
     Swal.fire({
         title: card.getName(),
@@ -437,7 +507,7 @@ Player.prototype.boardWipe = function(zone, cardType) {
 Player.prototype.resolveSpell = function(card, callback) {
     var self = this;
 
-    toastr.success(card.getName() + " resolved");
+    toast('success', card.getName() + ' resolved');
 
     if (card.isPermanent()) {
         this.zones.battlefield.add(card);
@@ -477,7 +547,7 @@ Player.prototype.resolveSpell = function(card, callback) {
                     if (args.cardType && !card.isType(args.cardType)) {
                         return;
                     }
-                    toastr.info(card.getName() + " was put into " + args.zone + " from the battlefield.");
+                    toast('info', card.getName() + " was put into " + args.zone + " from the battlefield.");
                     self.zones.battlefield.remove(card);
                     self.zones[args.zone].add(card);
                     $(this).remove();
