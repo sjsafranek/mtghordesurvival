@@ -4,7 +4,7 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>Mtg Deck Builder</title>
         <link rel="stylesheet" href="static/bootstrap/bootstrap.min.css">
-        <link rel="stylesheet" href="static/toastr/toastr.min.css" />
+        <!-- <link rel="stylesheet" href="static/toastr/toastr.min.css" /> -->
 
         <style>
 
@@ -177,7 +177,7 @@
         <script src="static/jquery/jquery.min.js"></script>
         <script src="static/bootstrap/bootstrap.min.js"></script>
         <script src="static/sweetalert2/sweetalert2.min.js"></script>
-        <script src="static/toastr/toastr.min.js"></script>
+        <!-- <script src="static/toastr/toastr.min.js"></script> -->
         <script src="https://kit.fontawesome.com/131ba7f97d.js"></script>
         <script src="static/underscore/underscore-min.js"></script>
         <script src="static/backbone/backbone-min.js"></script>
@@ -261,11 +261,11 @@ var CardView = Backbone.View.extend({
 
 
 
-toastr.options = {
-    "closeButton": true,
-    "newestOnTop": true,
-    "timeOut": 2000
-};
+// toastr.options = {
+//     "closeButton": true,
+//     "newestOnTop": true,
+//     "timeOut": 2000
+// };
 
 function toast(level, message) {
     // toastr[level](message).attr('style', 'height: 38px !important; width: 240px !important; vertical-align: middle; padding-top: 10px; font-size: small;');
