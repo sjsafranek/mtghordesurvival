@@ -48,8 +48,6 @@ func main() {
 	flag.IntVar(&PORT, "p", DEFAULT_PORT, "server port")
 	flag.Parse()
 
-	log.Println(DIRECTORY)
-
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 
 	fmt.Printf("Serving HTTP on %v port %v\n", HOST, PORT)
