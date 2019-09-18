@@ -75,17 +75,20 @@
             </div>
 
             <div class="row">
-                <div class="col-md-3">
-                    <label><i class="fas fa-eye zoneButton zoneHand"></i> Hand: </label><span class="hand"></span>
+                <div class="col-md-2">
+                    <label><i class="fas fa-eye zoneButton zoneHand"></i> Hand: </label><span class="handCount"></span>
                 </div>
-                <div class="col-md-3">
-                    <label><i class="fas fa-eye zoneButton zoneLibrary"></i> Library: </label><span class="library"></span>
+                <div class="col-md-2">
+                    <label><i class="fas fa-eye zoneButton zoneBattlefield"></i> Battlefield: </label><span class="battlefieldCount"></span>
                 </div>
-                <div class="col-md-3">
-                    <label><i class="fas fa-eye zoneButton zoneGraveyard"></i> Graveyard: </label><span class="graveyard"></span>
+                <div class="col-md-2">
+                    <label><i class="fas fa-eye zoneButton zoneLibrary"></i> Library: </label><span class="libraryCount"></span>
                 </div>
-                <div class="col-md-3">
-                    <label><i class="fas fa-eye zoneButton zoneExile"></i> Exile: </label><span class="exile"></span>
+                <div class="col-md-2">
+                    <label><i class="fas fa-eye zoneButton zoneGraveyard"></i> Graveyard: </label><span class="graveyardCount"></span>
+                </div>
+                <div class="col-md-2">
+                    <label><i class="fas fa-eye zoneButton zoneExile"></i> Exile: </label><span class="exileCount"></span>
                 </div>
             </div>
 
@@ -189,16 +192,12 @@ var CardView = Backbone.View.extend({
     },
     render: function(){
         // Compile the template using underscore
-        var template = _.template( $("#card_template").html(), {} );
+        this.template = _.template( $("#card_template").html(), {} );
         // Load the compiled HTML into the Backbone "el"
-        this.$el.html( template );
+        this.$el.append(this.template);
         this.$el.find('img').attr('src', this.model.getImage());
     }
 });
-
-// var cardView = new CardView({ model: new Card({name:'SPAM'}), el: $("#card_container") });
-
-
 
 
 
@@ -207,7 +206,6 @@ toastr.options = {
     "newestOnTop": true,
     "timeOut": 2000
 };
-
 
 
 
@@ -243,34 +241,31 @@ var Player = function() {
             }
 
             // has flashback
-            if (self.zones.graveyard.length && 'Army of the Damned' == self.zones.graveyard[self.zones.graveyard.length-1].name) {
-                var card = self.zones.graveyard.pop();
+            var cards = self.zones.graveyard.filter(function(card) {
+                return "Army of the Damned" == card.getName();
+            });
+
+            for (var i=0; i<cards.length; i++) {
+                var card = cards[i];
+                self.zones.graveyard.remove(card);
                 self.castSpell(card, function(){
-                    if (self.zones.graveyard.length && 'Army of the Damned' == self.zones.graveyard[self.zones.graveyard.length-1].name) {
-                        var card = self.zones.graveyard.pop();
-                        self.zones.exile.push(card);
-                    }
+                    self.zones.graveyard.remove(card);
+                    self.zones.exile.add(card);
                 });
             }
             //.end
+
+            self.updateCounts();
         },
         "Twilight's Call": function() {
             // all creatures from graveyard to battlefield
-            var noncreatures = [];
-            while(self.zones.graveyard.length) {
-                var card = self.zones.graveyard.shift();
-                if (card.isType('Creature')) {
-                    self.resolveSpell(card);
-                } else {
-                    noncreatures.push(card);
-                }
+            var cards = self.getCardsByType('creature', 'graveyard');
+            for (var i=0; i<cards.length; i++) {
+                var card = cards[i];
+                self.zones.graveyard.remove(card);
+                self.resolveSpell(card);
             }
-
-            // put noncreatures spells back into graveyard
-            while(noncreatures.length) {
-                var card = noncreatures.shift();
-                self.zones.graveyard.push(card);
-            }
+            self.updateCounts();
         }
     }
 
@@ -342,13 +337,19 @@ Player.prototype.addListeners = function() {
         selectAndChangeCardZone(self.zones.exile);
     });
 
+    $('.zoneBattlefield').on('click', function(e) {
+        selectAndChangeCardZone(self.zones.battlefield);
+    });
+
+
 }
 
 Player.prototype.updateCounts = function() {
-    $('.hand').text(this.zones.hand.length);
-    $('.library').text(this.zones.library.length);
-    $('.graveyard').text(this.zones.graveyard.length);
-    $('.exile').text(this.zones.exile.length);
+    $('.handCount').text(this.zones.hand.length);
+    $('.libraryCount').text(this.zones.library.length);
+    $('.graveyardCount').text(this.zones.graveyard.length);
+    $('.exileCount').text(this.zones.exile.length);
+    $('.battlefieldCount').text(this.zones.battlefield.length);
 }
 
 Player.prototype.takeTurn = function() {
@@ -389,6 +390,20 @@ Player.prototype.castSpells = function() {
     }
 
     this.updateCounts();
+}
+
+Player.prototype.getCardsByName = function(cardName, zone) {
+    zone = zone || 'library';
+    return this.zones[zone].filter(function(card) {
+        return cardName == card.getName();
+    });
+}
+
+Player.prototype.getCardsByType = function(cardType, zone) {
+    zone = zone || 'library';
+    return this.zones[zone].filter(function(card) {
+        return card.isType(cardType);
+    });
 }
 
 Player.prototype.castSpell = function(card, callback) {
@@ -501,6 +516,7 @@ d3.csvParse(data, function(d) {
         for (var i=0; i<parseInt(d.count); i++) {
             player.zones.library.create(card);
         }
+        player.updateCounts();
     });
 });
 
