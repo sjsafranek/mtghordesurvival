@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -42,6 +43,13 @@ func Logging(l *log.Logger) Adapter {
 	}
 }
 
+type logWriter struct {
+}
+
+func (writer logWriter) Write(bytes []byte) (int, error) {
+	return fmt.Print(time.Now().UTC().Format("2006-01-02T15:04:05.999Z") + " [INFO] " + string(bytes))
+}
+
 func main() {
 	flag.StringVar(&DIRECTORY, "d", DEFAULT_DIRECTORY, "directory")
 	flag.StringVar(&HOST, "h", DEFAULT_HOST, "server host")
@@ -49,6 +57,8 @@ func main() {
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
+	logger.SetFlags(0)
+	logger.SetOutput(new(logWriter))
 
 	fmt.Printf("Serving HTTP on %v port %v\n", HOST, PORT)
 	http.Handle("/", Adapt(http.FileServer(http.Dir(DIRECTORY)), Logging(logger)))
