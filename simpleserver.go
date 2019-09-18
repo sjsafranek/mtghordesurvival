@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	DEFAULT_PORT      int = 8000
-	DEFAULT_HOST          = "0.0.0.0"
-	DEFAULT_DIRECTORY     = "."
+	DEFAULT_PORT      int    = 8000
+	DEFAULT_HOST      string = "0.0.0.0"
+	DEFAULT_DIRECTORY string = "."
 )
 
 var (
@@ -43,9 +43,12 @@ func Logging(l *log.Logger) Adapter {
 }
 
 func main() {
+	flag.StringVar(&DIRECTORY, "d", DEFAULT_DIRECTORY, "directory")
 	flag.StringVar(&HOST, "h", DEFAULT_HOST, "server host")
 	flag.IntVar(&PORT, "p", DEFAULT_PORT, "server port")
 	flag.Parse()
+
+	log.Println(DIRECTORY)
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 
