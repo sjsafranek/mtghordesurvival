@@ -364,7 +364,8 @@ Player.prototype.addListeners = function() {
         };
     }
 
-    var selectAndChangeCardZone = function(zone) {
+    var selectAndChangeCardZone = function(oldZone) {
+        var zone = self.zones[oldZone];
         Swal.queue([
             selectCardFromZone(zone),
             {
@@ -386,30 +387,30 @@ Player.prototype.addListeners = function() {
                 var card = zone.get(cid);
                 zone.remove(card);
                 self.zones[newZone].add(card);
-                toast('info', card.getName() + ' moved from ' + zone + ' to ' + newZone);
+                toast('info', card.getName() + ' put into the ' + newZone + ' from the ' + oldZone);
                 self.updateCounts();
             }
         });
     }
 
     $('.zoneHand').on('click', function(e) {
-        selectAndChangeCardZone(self.zones.hand);
+        selectAndChangeCardZone('hand');
     });
 
     $('.zoneLibrary').on('click', function(e) {
-        selectAndChangeCardZone(self.zones.library);
+        selectAndChangeCardZone('library');
     });
 
     $('.zoneGraveyard').on('click', function(e) {
-        selectAndChangeCardZone(self.zones.graveyard);
+        selectAndChangeCardZone('graveyard');
     });
 
     $('.zoneExile').on('click', function(e) {
-        selectAndChangeCardZone(self.zones.exile);
+        selectAndChangeCardZone('exile');
     });
 
     $('.zoneBattlefield').on('click', function(e) {
-        selectAndChangeCardZone(self.zones.battlefield);
+        selectAndChangeCardZone('battlefield');
     });
 
 
@@ -548,7 +549,7 @@ Player.prototype.resolveSpell = function(card, callback) {
                     if (args.cardType && !card.isType(args.cardType)) {
                         return;
                     }
-                    toast('info', card.getName() + " was put into " + args.zone + " from the battlefield.");
+                    toast('info', card.getName() + " put into the " + args.zone + " from the battlefield.");
                     self.zones.battlefield.remove(card);
                     self.zones[args.zone].add(card);
                     $(this).remove();
