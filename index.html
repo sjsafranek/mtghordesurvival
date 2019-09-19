@@ -369,26 +369,18 @@ Player.prototype.addListeners = function() {
         var zone = self.zones[oldZone];
         Swal.queue([
             selectCardFromZone(zone),
-            {
-                title: 'Select zone',
-                input: 'select',
-                inputOptions: {
-                    exile: 'exile',
-                    graveyard: 'graveyard',
-                    library: 'library',
-                    hand: 'hand',
-                    battlefield: 'battlefield'
-                },
-                inputPlaceholder: 'Select a zone',
-                showCancelButton: true
-            }
+            self.selectZoneOptions({exclude: [oldZone]})
         ]).then(function(result){
             if (result.value) {
                 var cid = result.value[0];
                 var newZone = result.value[1];
                 var card = zone.get(cid);
                 zone.remove(card);
-                self.zones[newZone].add(card);
+                if ('battlefield' == newZone) {
+                    self.resolveSpell(card);
+                } else {
+                    self.zones[newZone].add(card);
+                }
                 toast('info', card.getName() + ' put into the ' + newZone + ' from the ' + oldZone);
                 self.updateCounts();
             }
@@ -480,6 +472,31 @@ Player.prototype.getCardsByType = function(cardType, zone) {
     });
 }
 
+Player.prototype.selectZoneOptions = function(opts) {
+    opts = opts || {}
+    var options = {
+        title: 'Select zone',
+        input: 'select',
+        inputOptions: {
+            exile: 'exile',
+            graveyard: 'graveyard',
+            library: 'library',
+            hand: 'hand',
+            battlefield: 'battlefield'
+        },
+        inputPlaceholder: 'Select a zone',
+        showCancelButton: true
+    }
+
+    if (opts.exclude) {
+        for (var i=0; i<opts.exclude.length; i++) {
+            delete options.inputOptions[opts.exclude[i]];
+        }
+    }
+
+    return options;
+}
+
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
 
@@ -499,7 +516,6 @@ Player.prototype.castSpell = function(card, callback) {
             callback && callback();
             return;
         }
-
         self.resolveSpell(card, callback);
     });
 }
@@ -520,18 +536,9 @@ Player.prototype.resolveSpell = function(card, callback) {
                 .addClass('mtgcard')
                 .on('contextmenu', function(e) {
                     e.preventDefault();
-                    Swal.fire({
-                        title: 'Select zone',
-                        input: 'select',
-                        inputOptions: {
-                            exile: 'exile',
-                            graveyard: 'graveyard',
-                            library: 'library',
-                            hand: 'hand'
-                        },
-                        inputPlaceholder: 'Select a zone',
-                        showCancelButton: true
-                    }).then(function(result) {
+                    Swal.fire(
+                        self.selectZoneOptions({exclude: ['battlefield']})
+                    ).then(function(result) {
                         var zone = result.value;
                         if (zone) {
                             var $elems = $('.mtgcard.selected');
