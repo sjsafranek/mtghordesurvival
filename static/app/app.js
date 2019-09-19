@@ -414,25 +414,55 @@ Player.prototype.addListeners = function() {
     }
 
 
-    $('.zoneHand').on('click', function(e) {
-        selectAndChangeCardZone('hand');
+
+    var ui2Zone = {
+        '.zoneHand': 'hand',
+        '.zoneLibrary': 'library',
+        '.zoneGraveyard': 'graveyard',
+        '.zoneExile': 'exile',
+        '.zoneBattlefield': 'battlefield',
+    }
+
+    Object.keys(ui2Zone).map(function(key) {
+        $(key).on('click', function(e) {
+            selectAndChangeCardZone(ui2Zone[key]);
+        });
+
+        if ('battlefield' == ui2Zone[key]) return;
+
+        $(key).droppable({
+            drop: function(event , ui) {
+                ui.draggable.trigger('changeZone', {zone: ui2Zone[key]});
+            },
+            over: function(event, ui) {
+                $(event.target).addClass('selected');
+            },
+            out: function(event, ui) {
+                $(event.target).removeClass('selected');
+            }
+        });
     });
 
-    $('.zoneLibrary').on('click', function(e) {
-        selectAndChangeCardZone('library');
-    });
 
-    $('.zoneGraveyard').on('click', function(e) {
-        selectAndChangeCardZone('graveyard');
-    });
-
-    $('.zoneExile').on('click', function(e) {
-        selectAndChangeCardZone('exile');
-    });
-
-    $('.zoneBattlefield').on('click', function(e) {
-        selectAndChangeCardZone('battlefield');
-    });
+    // $('.zoneHand').on('click', function(e) {
+    //     selectAndChangeCardZone('hand');
+    // });
+    //
+    // $('.zoneLibrary').on('click', function(e) {
+    //     selectAndChangeCardZone('library');
+    // });
+    //
+    // $('.zoneGraveyard').on('click', function(e) {
+    //     selectAndChangeCardZone('graveyard');
+    // });
+    //
+    // $('.zoneExile').on('click', function(e) {
+    //     selectAndChangeCardZone('exile');
+    // });
+    //
+    // $('.zoneBattlefield').on('click', function(e) {
+    //     selectAndChangeCardZone('battlefield');
+    // });
 
     // hot keys
     $(window).on('keydown', function(e) {
@@ -458,18 +488,19 @@ Player.prototype.addListeners = function() {
 
 
 
-    $('.zoneGraveyard').droppable({
-        tolerance: "touch",
-        drop: function(event , ui) {
-            ui.draggable.trigger('changeZone', {zone: 'graveyard'});
-        },
-        over: function(event, ui) {
-            $(event.target).addClass('selected');
-        },
-        out: function(event, ui) {
-            $(event.target).removeClass('selected');
-        }
-    });
+
+
+    // $('.zoneGraveyard').droppable({
+    //     drop: function(event , ui) {
+    //         ui.draggable.trigger('changeZone', {zone: 'graveyard'});
+    //     },
+    //     over: function(event, ui) {
+    //         $(event.target).addClass('selected');
+    //     },
+    //     out: function(event, ui) {
+    //         $(event.target).removeClass('selected');
+    //     }
+    // });
 
 }
 
