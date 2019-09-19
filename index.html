@@ -288,7 +288,7 @@ var CardView = Backbone.View.extend({
     events: {
         'click' : 'selectCard',
         'contextmenu': 'contextMenu',
-        'change_zone': 'changeZone',
+        'changeZone': 'changeZone',
         'tap': 'tap',
         'attack': 'attack',
         'untap': 'untap',
@@ -321,7 +321,7 @@ var CardView = Backbone.View.extend({
             if (zone) {
                 var $elems = $('.mtgcard.selected');
                 if ($elems.length) {
-                    $elems.trigger('change_zone', {zone: zone});
+                    $elems.trigger('changeZone', {zone: zone});
                     return;
                 }
                 this.remove();
@@ -536,7 +536,7 @@ Player.prototype.addListeners = function() {
         //ctrl+G
         if (e.ctrlKey && 71 == e.which) {
             e.preventDefault();
-            $('.selected').trigger('change_zone', {zone: 'graveyard'});
+            $('.selected').trigger('changeZone', {zone: 'graveyard'});
         }
     });
 
@@ -742,7 +742,7 @@ Player.prototype.castSpell = function(card, callback) {
 }
 
 Player.prototype.boardWipe = function(zone, cardType) {
-    $('.mtgcard').trigger('change_zone', {
+    $('.mtgcard').trigger('changeZone', {
         zone: zone || 'graveyard',
         cardType: cardType
     });
