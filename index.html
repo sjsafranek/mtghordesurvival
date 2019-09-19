@@ -13,6 +13,8 @@
                 border: 4px solid #ffffff;
                 border-radius: 8px;
                 transition: border-color 0.3s linear;
+                transition-duration: 0.3s;
+                transition-property: transform;
             }
 
             .mtgcard.selected {
@@ -51,6 +53,19 @@
             .footer {
                 font-size: 10px;
             }
+
+
+            .tapped {
+                transform: rotate(90deg);
+                /*-webkit-animation:tap 0.3s linear;*/
+                /*-moz-animation:tap 0.3s linear;*/
+                /*animation:tap 0.3s linear;*/
+                 /*transition-duration: 0.3s;*/
+            }
+
+            /*@-moz-keyframes tap { 100% { -moz-transform: rotate(90deg); } }
+            @-webkit-keyframes tap { 100% { -webkit-transform: rotate(90deg); } }
+            @keyframes tap { 100% { -webkit-transform: rotate(90deg); transform:rotate(90deg); } }*/
 
 
 
@@ -419,6 +434,27 @@ Player.prototype.updateCounts = function() {
 }
 
 Player.prototype.takeTurn = function() {
+
+    // beginningPhase
+    //   - untap lands and creatures
+    //   - draw a card
+    // precombatMainPhase
+    //   - play a land
+    //   - cast creatures & spells
+    // combatPhase
+    //   - declare attackers
+    //   - declare blockers
+    //   - combat damage
+    //  postcombatMainPhase
+    //   - play a land
+    //   - cast creatures & spells
+    // endingPhase
+    //   - remove damage
+    //   - pass the turn to opponent
+
+    // untap phase
+    $('.battlefield .mtgcard').removeClass('tapped');
+
     if (!this.zones.library.length) {
         $('#draw').addClass('disabled');
         return;
@@ -430,6 +466,8 @@ Player.prototype.takeTurn = function() {
     }
 
     this.castSpells();
+
+    $('.battlefield .mtgcard').addClass('tapped');
 }
 
 Player.prototype.drawCard = function() {
