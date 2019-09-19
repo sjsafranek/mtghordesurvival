@@ -396,6 +396,7 @@ Player.prototype.addListeners = function() {
             },
             GameUtils.selectZoneOptions({exclude: [oldZone]})
         ]).then(function(result) {
+            if (!result.value || result.dismiss) return;
             var cards = result.value[0];
             var newZone = result.value[1];
             for (var i=0; i<cards.length; i++) {
