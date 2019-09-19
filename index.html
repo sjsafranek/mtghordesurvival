@@ -245,6 +245,10 @@ var Zone = Backbone.Collection.extend({
     localStorage: new Store("mtghordesurvival"),
     chooseRandom: function() {
         var idx = Math.round(Math.random() * this.length);
+        if (!this.models[idx]) {
+            console.log('[ERROR]: ', idx, this.length);
+            return this.chooseRandom();
+        }
         return this.models[idx];
     }
 });
@@ -414,7 +418,7 @@ Player.prototype.updateCounts = function() {
     $('.battlefieldCount').text(this.zones.battlefield.length);
 }
 
-Player.prototype.takeTurn = function() {
+Player.prototype.takeTurn = function(callback) {
     var self = this;
     // beginningPhase
     //   - untap lands and creatures
@@ -472,7 +476,9 @@ Player.prototype.takeTurn = function() {
             // resolve();
             self.passPriority(resolve);
         });
-    });
+    }).then(function(result) {
+        callback && callback();
+    })
 }
 
 Player.prototype.passPriority = function(callback) {
@@ -492,11 +498,12 @@ Player.prototype.beginningPhase = function(callback) {
 
     toast('Draw step');
     if (!this.zones.library.length) {
-        $('#draw').addClass('disabled');
+        // $('#draw').addClass('disabled');
         return;
     }
 
     var card = this.drawCard();
+    console.log(card);
     while(this.zones.library.length && -1 != ['Zombie', 'Zombie Giant'].indexOf(card.getName())) {
         card = this.drawCard();
     }
@@ -719,7 +726,10 @@ d3.csvParse(data, function(d) {
 
 
 $('#takeTurn').on('click', function(e) {
-    player.takeTurn();
+    $('#takeTurn').prop('disabled', true);
+    player.takeTurn(function(){
+        $('#takeTurn').prop('disabled', false);
+    });
 });
 
 $('#addZombie').on('click', function(e) {
