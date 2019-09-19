@@ -618,7 +618,7 @@ Player.prototype.castSpell = function(card, callback) {
             Swal.fire(
                 self.selectZoneOptions({exclude:['battlefield']})
             ).then(function(result) {
-                var zone = result.value;
+                var zone = result.value || 'graveyard' ;
                 self.zones[zone].add(card);
                 callback && callback();
             });
