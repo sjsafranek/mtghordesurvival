@@ -4,7 +4,6 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>Mtg Deck Builder</title>
         <link rel="stylesheet" href="static/bootstrap/bootstrap.min.css">
-        <!-- <link rel="stylesheet" href="static/toastr/toastr.min.css" /> -->
 
         <style>
 
@@ -185,7 +184,6 @@
         <script src="static/jquery/jquery.min.js"></script>
         <script src="static/bootstrap/bootstrap.min.js"></script>
         <script src="static/sweetalert2/sweetalert2.min.js"></script>
-        <!-- <script src="static/toastr/toastr.min.js"></script> -->
         <script src="https://kit.fontawesome.com/131ba7f97d.js"></script>
         <script src="static/underscore/underscore-min.js"></script>
         <script src="static/backbone/backbone-min.js"></script>
@@ -216,12 +214,10 @@ var Card = Backbone.Model.extend({
         return this.get('name');
     },
     getTypes: function() {
-        return this.get('type_line');
+        return this.get('type_line').toLowerCase().replace(' —','').split(' ');
     },
     isType: function(cardType) {
-        return -1 != this.getTypes()
-                        .toLowerCase()
-                        .indexOf(cardType.toLowerCase());
+        return -1 != this.getTypes().indexOf(cardType.toLowerCase());
     },
     isPermanent: function() {
         const cardTypes = [
@@ -269,14 +265,7 @@ var CardView = Backbone.View.extend({
 
 
 
-// toastr.options = {
-//     "closeButton": true,
-//     "newestOnTop": true,
-//     "timeOut": 2000
-// };
-
 function toast(level, message) {
-    // toastr[level](message).attr('style', 'height: 38px !important; width: 240px !important; vertical-align: middle; padding-top: 10px; font-size: small;');
     var $elem = $('<div>').append(
         new Date().toISOString().split('.')[0],
         ': ',
@@ -426,6 +415,9 @@ Player.prototype.updateCounts = function() {
 }
 
 Player.prototype.takeTurn = function() {
+    var self = this;
+    // TODO
+    // make waterfall
 
     // beginningPhase
     //   - untap lands and creatures
@@ -444,9 +436,30 @@ Player.prototype.takeTurn = function() {
     //   - remove damage
     //   - pass the turn to opponent
 
-    // untap phase
+    toast('info', 'Beginning Phase');
+    this.beginningPhase(function(){
+        toast('info', 'Pre Combat Main Phase');
+        self.mainPhase(function() {
+            toast('info', 'Combat Phase');
+            self.combatPhase(function(){
+                toast('info', 'Post Combat Main Phase');
+                self.mainPhase(function(){
+                    toast('info', 'Ending Phase');
+                    self.endingPhase(function(){
+                        toast('info', 'Passing the turn');
+                    })
+                });
+            });
+        });
+    });
+
+}
+
+Player.prototype.beginningPhase = function(callback) {
+    toast('info', 'Untap step');
     $('.battlefield .mtgcard').removeClass('tapped');
 
+    toast('info', 'Draw step');
     if (!this.zones.library.length) {
         $('#draw').addClass('disabled');
         return;
@@ -457,9 +470,18 @@ Player.prototype.takeTurn = function() {
         card = this.drawCard();
     }
 
-    this.castSpells();
+    callback && callback();
+}
 
-    $('.battlefield .mtgcard').addClass('tapped');
+Player.prototype.combatPhase = function(callback) {
+    toast('info', 'Declare attackers step');
+    $('.battlefield .mtgcard.creature').addClass('tapped');
+    console.log('TODO');
+    callback && callback();
+}
+
+Player.prototype.endingPhase = function(callback) {
+    callback && callback();
 }
 
 Player.prototype.drawCard = function() {
@@ -467,7 +489,7 @@ Player.prototype.drawCard = function() {
         toast('warning', 'No cards in library!');
         return;
     }
-    toast('success', 'Draw a card');
+    toast('success', 'Draw card');
     var card = this.zones.library.chooseRandom();
     this.zones.library.remove(card);
     this.zones.hand.add(card);
@@ -475,17 +497,24 @@ Player.prototype.drawCard = function() {
     return card;
 }
 
-Player.prototype.castSpells = function() {
+Player.prototype.mainPhase = function(callback) {
     var self = this;
-    // cast all spells from hand
-    if (this.zones.hand.length) {
-        var card = this.zones.hand.shift();
-        this.castSpell(card, function() {
-            self.castSpells();
-        });
-    }
 
-    this.updateCounts();
+    // cast all spells from hand
+    this.zones.hand.reduce( (previousPromise, nextCard) => {
+        return previousPromise.then(() => {
+            return new Promise((resolve, reject) => {
+                self.zones.hand.remove(nextCard);
+                return self.castSpell(nextCard, function(){
+                    self.updateCounts();
+                    resolve();
+                    if (0 == self.zones.hand.length) {
+                        callback && callback();
+                    }
+                });
+            });
+        });
+    }, Promise.resolve());
 }
 
 Player.prototype.getCardsByName = function(cardName, zone) {
@@ -532,7 +561,7 @@ Player.prototype.castSpell = function(card, callback) {
 
     toast('info', 'Cast ' + card.getName());
 
-    Swal.fire({
+    return Swal.fire({
         title: card.getName(),
         imageUrl: card.getImage('normal'),
         showCancelButton: true,
@@ -564,6 +593,7 @@ Player.prototype.resolveSpell = function(card, callback) {
         $('.battlefield').append(
             $('<img>', {src: card.getImage()})
                 .addClass('mtgcard')
+                .addClass(card.getTypes().join(' '))
                 .on('contextmenu', function(e) {
                     e.preventDefault();
                     Swal.fire(
