@@ -17,6 +17,19 @@
                 transition-property: transform;
             }
 
+            .mtgcard img {
+                width: 100%;
+                height:auto;
+            }
+
+            .mtgcard .counter-container {
+                position: absolute;
+            }
+
+            .mtgcard .counter-symbol {
+                display: none;
+            }
+
             .mtgcard.selected {
                 border-color: #0088cc !important;
             }
@@ -29,10 +42,6 @@
             .zoneButton:hover {
                 color: #0088cc !important;
             }
-
-            /*.cardContainer {
-                display: inline-block;
-            }*/
 
 
             /* Sticky footer styles
@@ -54,10 +63,10 @@
             }
             /* .end */
 
+
             .footer {
                 font-size: 10px;
             }
-
 
             .tapped {
                 transform: rotate(90deg);
@@ -154,16 +163,18 @@
                     <div class="row">
                         <div class="col-md-12 battlefield">
                             <div class="row">
-                                <div class="col-md-8 creatures"></div>
-                                <div class="col-md-4 noncreatures"></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12 combatZone"></div>
+                                <div class="col-md-8">
+                                    <div class="row no-gutters creatures">
+                                    </div>
+                                    <div class="row no-gutters combatZone"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="row no-gutters noncreatures">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- <div id="card_container"></div> -->
 
                 </main>
 
@@ -202,7 +213,10 @@
         <script src="static/backbone/backbone.localStorage-min.js"></script>
 
         <script type="text/template" id="card_template">
-            <!-- <td><%= name %></td> -->
+            <span class="counter-container">
+                <span class="badge badge-pill badge-primary counter-symbol plus-one-plus-one-counter" title="+1/+1">1 +1/+1</span>
+                <span class="badge badge-pill badge-danger counter-symbol minus-one-minus-one-counter" title="-1/-1">1 -1/-1</span>
+            </span>
             <img src="<%= image_uris.small %>"></img>
         </script>
 
@@ -210,6 +224,12 @@
         <script>
 
 localStorage.clear();
+
+
+
+
+
+
 
 
 var zombie;
@@ -283,6 +303,10 @@ var Zone = Backbone.Collection.extend({
 var CardView = Backbone.View.extend({
     template: _.template($('#card_template').html()),
     initialize: function(){
+        this.counters = {
+            '+1/+1': 0,
+            '-1/-1': 0
+        }
         this.render();
     },
     events: {
@@ -296,42 +320,125 @@ var CardView = Backbone.View.extend({
     },
     tap: function(e) {
         this.$el.addClass('tapped');
+        toast(this.model.getName() + " tapped");
     },
     untap: function(e) {
         this.$el.removeClass('tapped');
+        toast(this.model.getName() + " untapped");
     },
     attack: function(e) {
-        if (!this.$el.hasClass('tapped')) {
-            $('.combatZone').append(this.$el);
+        var self = this;
+        if (!this.$el.hasClass('tapped') && this.model.isType('creature')) {
             this.tap();
+            // allow for tap animation to complete
+            setTimeout(function(){
+                $('.combatZone').append(self.$el);
+                toast(self.model.getName() + " attacking");
+            },300);
         }
     },
     endCombat: function(e) {
         $('.creatures').append(this.$el);
     },
     selectCard: function(e){
+        if (!e.ctrlKey) {
+            $('.selected').removeClass('selected');
+        }
         this.$el.toggleClass('selected');
     },
     contextMenu: function(e) {
+        var self = this;
         e.preventDefault();
-        Swal.fire(
-            GameUtils.selectZoneOptions({exclude: ['battlefield']})
-        ).then(function(result) {
-            var zone = result.value;
-            if (zone) {
-                var $elems = $('.mtgcard.selected');
-                if ($elems.length) {
-                    $elems.trigger('changeZone', {zone: zone});
-                    return;
-                }
-                this.remove();
-                self.zones.battlefield.remove(this.model);
-                self.zones[zone].add(this.model);
-            }
-        });
+
+        var top = e.pageY - 10;
+        var left = e.pageX - 50;
+
+        // clear all
+        $('.mtgcard-menu').remove();
+
+        var $menu;
+        $menu = $('<div>')
+            .addClass('dropdown-menu dropdown-menu-sm mtgcard-menu')
+            .append(
+                !self.$el.hasClass('tapped') ?
+                    $('<a>')
+                        .addClass('dropdown-item')
+                        .text('tap')
+                        .on('click', function(){
+                            $menu.remove();
+                            self.tap()
+                        }) :
+                    $('<a>')
+                        .addClass('dropdown-item')
+                        .text('untap')
+                        .on('click', function(){
+                            $menu.remove();
+                            self.untap()
+                        }),
+                $('<a>')
+                    .addClass('dropdown-item')
+                    .text('add counter')
+                    .on('click', function(){
+                        $menu.remove();
+
+                        self.counters['+1/+1']++;
+                        self.counters['-1/-1']++;
+
+                        self.$el
+                            .find('.plus-one-plus-one-counter')
+                            .text(
+                                self.counters['+1/+1']
+                            )
+                            .show();
+
+                        self.$el
+                            .find('.minus-one-minus-one-counter')
+                            .text(
+                                self.counters['-1/-1']
+                            )
+                            .show();
+
+                        debugger;
+                    }),
+                $('<a>')
+                    .addClass('dropdown-item')
+                    .text('change zone')
+                    .on('click', function(){
+                        $menu.remove();
+
+                        Swal.fire(
+                            GameUtils.selectZoneOptions({exclude: ['battlefield']})
+                        ).then(function(result) {
+                            var zone = result.value;
+                            if (zone) {
+                                var $elems = $('.mtgcard.selected');
+                                if ($elems.length) {
+                                    $elems.trigger('changeZone', {zone: zone});
+                                    return;
+                                }
+                                this.remove();
+                                self.zones.battlefield.remove(this.model);
+                                self.zones[zone].add(this.model);
+                            }
+                        });
+
+                    })
+            ).css({
+                display: "block",
+                top: top,
+                left: left
+            }).addClass("show");
+
+        $('body').append($menu);
+
+        // $(window).on("click", function(e) {
+        //     $("#mtgcard-menu").removeClass("show").hide();
+        // });
+
+        return false;    // blocks default Webbrowser right click menu
     },
     changeZone: function(e, args) {
-        if (args.cardType && !card.isType(args.cardType)) {
+        if (args.cardType && !this.model.isType(args.cardType)) {
             return;
         }
         toast(this.model.getName() + " put into the " + args.zone + " from the battlefield.");
@@ -342,9 +449,6 @@ var CardView = Backbone.View.extend({
     },
     render: function(){
         this.$el.html(this.template(this.model.attributes));
-        this.$el.append(
-            $('<img>').attr('src', this.model.getImage())
-        );
         return this;
     }
 });
@@ -757,6 +861,7 @@ Player.prototype.resolveSpell = function(card, callback) {
         this.zones.battlefield.add(card);
         var $container = $('<div>')
             .addClass('mtgcard')
+            .addClass( card.isType('creature') ? 'col-md-2' : 'col-md-4' )
             .addClass(card.getTypes().join(' '));
 
         if (card.isType('creature')) {
