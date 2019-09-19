@@ -416,9 +416,9 @@ var CardView = Backbone.View.extend({
                                     $elems.trigger('changeZone', {zone: zone});
                                     return;
                                 }
-                                this.remove();
-                                self.zones.battlefield.remove(this.model);
-                                self.zones[zone].add(this.model);
+                                self.remove();
+                                self.zones.battlefield.remove(self.model);
+                                self.zones[zone].add(self.model);
                             }
                         });
 
@@ -589,14 +589,38 @@ Player.prototype.addListeners = function() {
 
     var selectAndChangeCardZone = function(oldZone) {
         var zone = self.zones[oldZone];
+
+
         Swal.queue([
-            selectCardFromZone(zone),
+            {
+                title: 'Select a card',
+                html: $('<select>', {id: 'card-select'})
+                    .addClass('form-control')
+                    .prop('multiple', true)
+                    .append(
+                        (function(){
+                            return zone.map(function(card) {
+                                return $('<option>', {
+                                    value: card.cid
+                                }).text(card.getName())
+                            });
+                        })()
+                    )
+                    .get(0),
+                inputPlaceholder: 'Select a card',
+                showCancelButton: true,
+                preConfirm: () => {
+                    return $('#card-select').val().map(function(cid) {
+                        return zone.get(cid);
+                    })
+                }
+            },
             GameUtils.selectZoneOptions({exclude: [oldZone]})
-        ]).then(function(result){
-            if (result.value) {
-                var cid = result.value[0];
-                var newZone = result.value[1];
-                var card = zone.get(cid);
+        ]).then(function(result) {
+            var cards = result.value[0];
+            var newZone = result.value[1];
+            for (var i=0; i<cards.length; i++) {
+                var card = cards[i]
                 zone.remove(card);
                 if ('battlefield' == newZone) {
                     self.resolveSpell(card);
@@ -608,6 +632,7 @@ Player.prototype.addListeners = function() {
             }
         });
     }
+
 
     $('.zoneHand').on('click', function(e) {
         selectAndChangeCardZone('hand');
