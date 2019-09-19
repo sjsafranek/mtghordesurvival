@@ -2,12 +2,13 @@
     <head><meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Mtg Deck Builder</title>
+        <title>MTG Zombie Horde</title>
         <link rel="stylesheet" href="static/bootstrap/bootstrap.min.css">
 
         <style>
 
             .mtgcard {
+                display: inline-block;
                 margin: 1px;
                 border: 4px solid #ffffff;
                 border-radius: 8px;
@@ -28,6 +29,10 @@
             .zoneButton:hover {
                 color: #0088cc !important;
             }
+
+            /*.cardContainer {
+                display: inline-block;
+            }*/
 
 
             /* Sticky footer styles
@@ -148,10 +153,17 @@
 
                     <div class="row">
                         <div class="col-md-12 battlefield">
+                            <div class="row">
+                                <div class="col-md-8 creatures"></div>
+                                <div class="col-md-4 noncreatures"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 combatZone"></div>
+                            </div>
                         </div>
                     </div>
 
-                    <div id="card_container"></div>
+                    <!-- <div id="card_container"></div> -->
 
                 </main>
 
@@ -187,13 +199,13 @@
         <script src="https://kit.fontawesome.com/131ba7f97d.js"></script>
         <script src="static/underscore/underscore-min.js"></script>
         <script src="static/backbone/backbone-min.js"></script>
-        <script src="static/backbone/backbone.localStorage-min.js" type="text/javascript">
+        <script src="static/backbone/backbone.localStorage-min.js"></script>
 
         <script type="text/template" id="card_template">
-            <div class="card">
-                <img></img>
-            </div>
+            <!-- <td><%= name %></td> -->
+            <img src="<%= image_uris.small %>"></img>
         </script>
+
 
         <script>
 
@@ -209,7 +221,18 @@ var Card = Backbone.Model.extend({
     // Backbone will use this attribute to make models singletons.
     idAttribute: "_id",
     defaults: {},
-    initialize: function(){},
+    initialize: function(){
+        this.clearState();
+    },
+    clearState: function() {
+        this.state = {
+            tapped: false,
+            counters: {},
+            attacking: false,
+            blocking: false,
+            damage: 0
+        };
+    },
     getName: function() {
         return this.get('name');
     },
@@ -236,6 +259,9 @@ var Card = Backbone.Model.extend({
     },
     getImage: function(size) {
         return this.get('image_uris')[size||'small'];
+    },
+    changeZone: function() {
+
     }
 });
 
@@ -255,17 +281,79 @@ var Zone = Backbone.Collection.extend({
 
 
 var CardView = Backbone.View.extend({
+    template: _.template($('#card_template').html()),
     initialize: function(){
         this.render();
     },
+    events: {
+        'click' : 'selectCard',
+        'contextmenu': 'contextMenu',
+        'change_zone': 'changeZone',
+        'tap': 'tap',
+        'attack': 'attack',
+        'untap': 'untap',
+        'endCombat': 'endCombat'
+    },
+    tap: function(e) {
+        this.$el.addClass('tapped');
+    },
+    untap: function(e) {
+        this.$el.removeClass('tapped');
+    },
+    attack: function(e) {
+        if (!this.$el.hasClass('tapped')) {
+            $('.combatZone').append(this.$el);
+            this.tap();
+        }
+    },
+    endCombat: function(e) {
+        $('.creatures').append(this.$el);
+    },
+    selectCard: function(e){
+        this.$el.toggleClass('selected');
+    },
+    contextMenu: function(e) {
+        e.preventDefault();
+        Swal.fire(
+            GameUtils.selectZoneOptions({exclude: ['battlefield']})
+        ).then(function(result) {
+            var zone = result.value;
+            if (zone) {
+                var $elems = $('.mtgcard.selected');
+                if ($elems.length) {
+                    $elems.trigger('change_zone', {zone: zone});
+                    return;
+                }
+                this.remove();
+                self.zones.battlefield.remove(this.model);
+                self.zones[zone].add(this.model);
+            }
+        });
+    },
+    changeZone: function(e, args) {
+        if (args.cardType && !card.isType(args.cardType)) {
+            return;
+        }
+        toast(this.model.getName() + " put into the " + args.zone + " from the battlefield.");
+        player.zones.battlefield.remove(this.model);
+        player.zones[args.zone].add(this.model);
+        this.remove();
+        player.updateCounts();
+    },
     render: function(){
-        // Compile the template using underscore
-        this.template = _.template( $("#card_template").html(), {} );
-        // Load the compiled HTML into the Backbone "el"
-        this.$el.append(this.template);
-        this.$el.find('img').attr('src', this.model.getImage());
+        this.$el.html(this.template(this.model.attributes));
+        this.$el.append(
+            $('<img>').attr('src', this.model.getImage())
+        );
+        return this;
     }
 });
+
+
+
+
+
+
 
 
 
@@ -277,6 +365,36 @@ function toast(message) {
     );
     $('#gameLog').append($elem);
     $elem.get(0).scrollIntoView();
+}
+
+
+
+
+var GameUtils = {
+    selectZoneOptions: function(opts) {
+        opts = opts || {}
+        var options = {
+            title: 'Select zone',
+            input: 'select',
+            inputOptions: {
+                exile: 'exile',
+                graveyard: 'graveyard',
+                library: 'library',
+                hand: 'hand',
+                battlefield: 'battlefield'
+            },
+            inputPlaceholder: 'Select a zone',
+            showCancelButton: true
+        }
+
+        if (opts.exclude) {
+            for (var i=0; i<opts.exclude.length; i++) {
+                delete options.inputOptions[opts.exclude[i]];
+            }
+        }
+
+        return options;
+    }
 }
 
 
@@ -369,7 +487,7 @@ Player.prototype.addListeners = function() {
         var zone = self.zones[oldZone];
         Swal.queue([
             selectCardFromZone(zone),
-            self.selectZoneOptions({exclude: [oldZone]})
+            GameUtils.selectZoneOptions({exclude: [oldZone]})
         ]).then(function(result){
             if (result.value) {
                 var cid = result.value[0];
@@ -407,6 +525,27 @@ Player.prototype.addListeners = function() {
         selectAndChangeCardZone('battlefield');
     });
 
+    // hot keys
+    $(window).on('keydown', function(e) {
+        // ctrl+A
+        if (e.ctrlKey && 65 == e.which) {
+            e.preventDefault();
+            $('.mtgcard').addClass('selected');
+        }
+
+        //ctrl+G
+        if (e.ctrlKey && 71 == e.which) {
+            e.preventDefault();
+            $('.selected').trigger('change_zone', {zone: 'graveyard'});
+        }
+    });
+
+    // unselect cards
+    // $(window).on('click', function(e) {
+    //     if (!$(e.target).hasClass('mtgcard')) {
+    //         $('img').removeClass('selected');
+    //     }
+    // });
 
 }
 
@@ -458,6 +597,8 @@ Player.prototype.takeTurn = function(callback) {
         });
     }).then(function(result) {
         return new Promise((resolve, reject) => {
+            // remove from combat zone
+            $('.battlefield .mtgcard.creature').trigger('endCombat');
             toast('Post Combat Main Phase');
             self.mainPhase(function() {
                 self.passPriority(resolve);
@@ -473,7 +614,6 @@ Player.prototype.takeTurn = function(callback) {
     }).then(function(result) {
         return new Promise((resolve, reject) => {
             toast('Passing the turn');
-            // resolve();
             self.passPriority(resolve);
         });
     }).then(function(result) {
@@ -494,16 +634,14 @@ Player.prototype.passPriority = function(callback) {
 
 Player.prototype.beginningPhase = function(callback) {
     toast('Untap step');
-    $('.battlefield .mtgcard').removeClass('tapped');
+    $('.battlefield .mtgcard').trigger('untap');
 
     toast('Draw step');
     if (!this.zones.library.length) {
-        // $('#draw').addClass('disabled');
         return;
     }
 
     var card = this.drawCard();
-    console.log(card);
     while(this.zones.library.length && -1 != ['Zombie', 'Zombie Giant'].indexOf(card.getName())) {
         card = this.drawCard();
     }
@@ -513,7 +651,7 @@ Player.prototype.beginningPhase = function(callback) {
 
 Player.prototype.combatPhase = function(callback) {
     toast('Declare attackers step');
-    $('.battlefield .mtgcard.creature').addClass('tapped');
+    $('.battlefield .mtgcard.creature').trigger('attack');
     console.log('TODO');
     callback && callback();
 }
@@ -577,37 +715,12 @@ Player.prototype.getCardsByType = function(cardType, zone) {
     });
 }
 
-Player.prototype.selectZoneOptions = function(opts) {
-    opts = opts || {}
-    var options = {
-        title: 'Select zone',
-        input: 'select',
-        inputOptions: {
-            exile: 'exile',
-            graveyard: 'graveyard',
-            library: 'library',
-            hand: 'hand',
-            battlefield: 'battlefield'
-        },
-        inputPlaceholder: 'Select a zone',
-        showCancelButton: true
-    }
-
-    if (opts.exclude) {
-        for (var i=0; i<opts.exclude.length; i++) {
-            delete options.inputOptions[opts.exclude[i]];
-        }
-    }
-
-    return options;
-}
-
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
     toast('Cast ' + card.getName());
     return Swal.fire({
         title: card.getName(),
-        imageUrl: card.getImage('normal'),
+        imageUrl: card.getImage(),
         showCancelButton: true,
         focusConfirm: false,
         confirmButtonText: 'Resolve',
@@ -616,7 +729,7 @@ Player.prototype.castSpell = function(card, callback) {
     }).then(function(result){
         if (!result.value) {
             Swal.fire(
-                self.selectZoneOptions({exclude:['battlefield']})
+                GameUtils.selectZoneOptions({exclude:['battlefield']})
             ).then(function(result) {
                 var zone = result.value || 'graveyard' ;
                 self.zones[zone].add(card);
@@ -642,41 +755,20 @@ Player.prototype.resolveSpell = function(card, callback) {
 
     if (card.isPermanent()) {
         this.zones.battlefield.add(card);
-        $('.battlefield').append(
-            $('<img>', {src: card.getImage()})
-                .addClass('mtgcard')
-                .addClass(card.getTypes().join(' '))
-                .on('contextmenu', function(e) {
-                    e.preventDefault();
-                    Swal.fire(
-                        self.selectZoneOptions({exclude: ['battlefield']})
-                    ).then(function(result) {
-                        var zone = result.value;
-                        if (zone) {
-                            var $elems = $('.mtgcard.selected');
-                            if ($elems.length) {
-                                $elems.trigger('change_zone', {zone: zone});
-                                return;
-                            }
+        var $container = $('<div>')
+            .addClass('mtgcard')
+            .addClass(card.getTypes().join(' '));
 
-                            $(e.target).remove();
-                            self.zones.battlefield.remove(card)
-                            self.zones[zone].add(card);
-                        }
-                    });
-                }).on('click', function(e){
-                    $(e.target).toggleClass('selected');
-                }).on('change_zone', function(e, args){
-                    if (args.cardType && !card.isType(args.cardType)) {
-                        return;
-                    }
-                    toast(card.getName() + " put into the " + args.zone + " from the battlefield.");
-                    self.zones.battlefield.remove(card);
-                    self.zones[args.zone].add(card);
-                    $(this).remove();
-                    self.updateCounts();
-                })
-        );
+        if (card.isType('creature')) {
+            $('.battlefield .creatures').append($container);
+        } else {
+            $('.battlefield .noncreatures').append($container);
+        }
+
+        var cardView = new CardView({
+            el: $container,
+            model: card
+        });
     } else {
         this.zones.graveyard.add(card);
     }
