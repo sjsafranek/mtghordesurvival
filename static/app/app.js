@@ -705,7 +705,7 @@ Player.prototype.resolveSpell = function(card, callback) {
                 ui.helper.animate({
                     width: 80,
                     height: 50
-                });
+                }, 'fast');
             },
         });
 
