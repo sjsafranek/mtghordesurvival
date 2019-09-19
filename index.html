@@ -117,7 +117,7 @@
                 <main role="main" class="col-md-9">
 
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-12 controls">
                             <h4 class="mt-5">Horde Survival</h4>
                             <button id="addZombie" class="btn btn-sm btn-danger ml-2" title="Add Zombie">
                                 <i class="fas fa-plus"></i>
@@ -265,7 +265,7 @@ var CardView = Backbone.View.extend({
 
 
 
-function toast(level, message) {
+function toast(message) {
     var $elem = $('<div>').append(
         new Date().toISOString().split('.')[0],
         ': ',
@@ -377,7 +377,7 @@ Player.prototype.addListeners = function() {
                 } else {
                     self.zones[newZone].add(card);
                 }
-                toast('info', card.getName() + ' put into the ' + newZone + ' from the ' + oldZone);
+                toast(card.getName() + ' put into the ' + newZone + ' from the ' + oldZone);
                 self.updateCounts();
             }
         });
@@ -416,9 +416,6 @@ Player.prototype.updateCounts = function() {
 
 Player.prototype.takeTurn = function() {
     var self = this;
-    // TODO
-    // make waterfall
-
     // beginningPhase
     //   - untap lands and creatures
     //   - draw a card
@@ -436,37 +433,71 @@ Player.prototype.takeTurn = function() {
     //   - remove damage
     //   - pass the turn to opponent
 
-    toast('info', 'Beginning Phase');
-    this.beginningPhase(function(){
-        toast('info', 'Pre Combat Main Phase');
-        self.mainPhase(function() {
-            toast('info', 'Combat Phase');
-            self.combatPhase(function(){
-                toast('info', 'Post Combat Main Phase');
-                self.mainPhase(function(){
-                    toast('info', 'Ending Phase');
-                    self.endingPhase(function(){
-                        toast('info', 'Passing the turn');
-                    })
-                });
+    var promise = new Promise((resolve, reject) => {
+        toast('Beginning Phase');
+        self.beginningPhase(function() {
+            self.passPriority(resolve);
+        });
+    }).then(function(result) {
+        return new Promise((resolve, reject) => {
+            toast('Pre Combat Main Phase');
+            self.mainPhase(function() {
+                self.passPriority(resolve);
             });
         });
+    }).then(function(result) {
+        return new Promise((resolve, reject) => {
+            toast('Combat Phase');
+            self.combatPhase(function() {
+                self.passPriority(resolve);
+            });
+        });
+    }).then(function(result) {
+        return new Promise((resolve, reject) => {
+            toast('Post Combat Main Phase');
+            self.mainPhase(function() {
+                self.passPriority(resolve);
+            });
+        });
+    }).then(function(result) {
+        return new Promise((resolve, reject) => {
+            toast('Ending Phase');
+            self.endingPhase(function() {
+                self.passPriority(resolve);
+            });
+        });
+    }).then(function(result) {
+        return new Promise((resolve, reject) => {
+            toast('Passing the turn');
+            // resolve();
+            self.passPriority(resolve);
+        });
     });
+}
 
+Player.prototype.passPriority = function(callback) {
+    var $elem = $('<button>')
+        .addClass("btn btn-sm btn-success ml-2")
+        .text('Continue')
+        .on('click', function(e) {
+            this.remove();
+            callback && callback();
+        });
+    $('.controls').append($elem);
 }
 
 Player.prototype.beginningPhase = function(callback) {
-    toast('info', 'Untap step');
+    toast('Untap step');
     $('.battlefield .mtgcard').removeClass('tapped');
 
-    toast('info', 'Draw step');
+    toast('Draw step');
     if (!this.zones.library.length) {
         $('#draw').addClass('disabled');
         return;
     }
 
     var card = this.drawCard();
-    while(-1 != ['Zombie', 'Zombie Giant'].indexOf(card.getName())) {
+    while(this.zones.library.length && -1 != ['Zombie', 'Zombie Giant'].indexOf(card.getName())) {
         card = this.drawCard();
     }
 
@@ -474,7 +505,7 @@ Player.prototype.beginningPhase = function(callback) {
 }
 
 Player.prototype.combatPhase = function(callback) {
-    toast('info', 'Declare attackers step');
+    toast('Declare attackers step');
     $('.battlefield .mtgcard.creature').addClass('tapped');
     console.log('TODO');
     callback && callback();
@@ -486,10 +517,10 @@ Player.prototype.endingPhase = function(callback) {
 
 Player.prototype.drawCard = function() {
     if (!this.zones.library.length) {
-        toast('warning', 'No cards in library!');
+        toast('No cards in library!');
         return;
     }
-    toast('success', 'Draw card');
+    toast('Draw card');
     var card = this.zones.library.chooseRandom();
     this.zones.library.remove(card);
     this.zones.hand.add(card);
@@ -500,7 +531,14 @@ Player.prototype.drawCard = function() {
 Player.prototype.mainPhase = function(callback) {
     var self = this;
 
-    // cast all spells from hand
+    if (0 == self.zones.hand.length) {
+        callback && callback();
+        return;
+    }
+
+    // Cast all spells from hand
+    // This must be done sequentially but use Promises for SweetAlert2
+    // https://css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
     this.zones.hand.reduce( (previousPromise, nextCard) => {
         return previousPromise.then(() => {
             return new Promise((resolve, reject) => {
@@ -508,6 +546,7 @@ Player.prototype.mainPhase = function(callback) {
                 return self.castSpell(nextCard, function(){
                     self.updateCounts();
                     resolve();
+                    // continue when no cards are left to cast
                     if (0 == self.zones.hand.length) {
                         callback && callback();
                     }
@@ -558,21 +597,24 @@ Player.prototype.selectZoneOptions = function(opts) {
 
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
-
-    toast('info', 'Cast ' + card.getName());
-
+    toast('Cast ' + card.getName());
     return Swal.fire({
         title: card.getName(),
         imageUrl: card.getImage('normal'),
         showCancelButton: true,
         focusConfirm: false,
         confirmButtonText: 'Resolve',
-        cancelButtonText: 'Cancel',
+        cancelButtonText: 'Counter',
         animation: false
     }).then(function(result){
         if (!result.value) {
-            self.zones.graveyard.push(card);
-            callback && callback();
+            Swal.fire(
+                self.selectZoneOptions({exclude:['battlefield']})
+            ).then(function(result) {
+                var zone = result.value;
+                self.zones[zone].add(card);
+                callback && callback();
+            });
             return;
         }
         self.resolveSpell(card, callback);
@@ -580,13 +622,16 @@ Player.prototype.castSpell = function(card, callback) {
 }
 
 Player.prototype.boardWipe = function(zone, cardType) {
-    $('.mtgcard').trigger('change_zone', {zone: zone || 'graveyard', cardType: cardType});
+    $('.mtgcard').trigger('change_zone', {
+        zone: zone || 'graveyard',
+        cardType: cardType
+    });
 }
 
 Player.prototype.resolveSpell = function(card, callback) {
     var self = this;
 
-    toast('success', card.getName() + ' resolved');
+    toast(card.getName() + ' resolved');
 
     if (card.isPermanent()) {
         this.zones.battlefield.add(card);
@@ -618,7 +663,7 @@ Player.prototype.resolveSpell = function(card, callback) {
                     if (args.cardType && !card.isType(args.cardType)) {
                         return;
                     }
-                    toast('info', card.getName() + " put into the " + args.zone + " from the battlefield.");
+                    toast(card.getName() + " put into the " + args.zone + " from the battlefield.");
                     self.zones.battlefield.remove(card);
                     self.zones[args.zone].add(card);
                     $(this).remove();
