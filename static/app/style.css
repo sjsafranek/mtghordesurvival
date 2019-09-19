@@ -27,12 +27,16 @@
     box-shadow: 0 0 4px 2px #337ab7;
 }
 
-.zoneButton {
+.zone-section {
     cursor: pointer;
     transition: color 0.3s linear;
+    border-style: dashed;
+    border-color: white;
+    border-width: 2px;
+    transition: border-color 0.3s linear;
 }
 
-.zoneButton:hover {
+.zone-section:hover {
     color: #0088cc !important;
 }
 
