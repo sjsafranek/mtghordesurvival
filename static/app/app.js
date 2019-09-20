@@ -2,7 +2,8 @@
 localStorage.clear();
 
 
-
+// TODO
+//  - make Zone views
 
 
 
