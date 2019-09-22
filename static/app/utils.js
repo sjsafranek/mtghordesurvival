@@ -26,3 +26,6 @@ var GameUtils = {
         return options;
     }
 }
+
+
+function noop(){}
