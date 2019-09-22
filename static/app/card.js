@@ -24,6 +24,18 @@ var Card = Backbone.Model.extend({
         };
     },
 
+    tap: function() {
+        this.state.tapped = true;
+    },
+
+    untap: function() {
+        this.state.tapped = false;
+    },
+
+    isTapped: function() {
+        return this.state.tapped;
+    },
+
     haste: function() {
         this.state.summoningSickness = false;
     },
@@ -34,7 +46,7 @@ var Card = Backbone.Model.extend({
 
     clearDamage: function() {
         this.state.damage = 0;
-    }
+    },
 
     getPower: function() {
         if (this.get('power')) {
@@ -100,11 +112,26 @@ var Card = Backbone.Model.extend({
         return this.get('image_uris')[size||'small'];
     },
 
-    addTo: function(zone) {
+    _addTo: function(zone, callback) {
         if (this.collection) {
             this.collection.remove(this);
         }
         zone.add(this);
+        callback && callback();
+    },
+
+    addTo: function(newZone) {
+        var self = this;
+        var oldZone = this.collection;
+        if (newZone != oldZone) {
+            player.addGameAction(
+                new GameAction(
+                    this.getName() + " put into the " + newZone.getName() + (oldZone ? " from the " + oldZone.getName() : ""),
+                    function(callback) { self._addTo(newZone, callback); },
+                    function(callback) { self._addTo(oldZone, callback); }
+                )
+            );
+        }
     }
 
 });
@@ -115,10 +142,6 @@ var Card = Backbone.Model.extend({
 var CardView = Backbone.View.extend({
     template: _.template($('#card_template').html()),
     initialize: function(){
-        this.counters = {
-            '+1/+1': 0,
-            '-1/-1': 0
-        }
         this.render();
     },
     events: {
@@ -131,17 +154,58 @@ var CardView = Backbone.View.extend({
         'untap': 'untap',
         'endCombat': 'endCombat'
     },
-    toggleTapped: function(e) {
-        this.$el.toggleClass('tapped');
+
+    isTapped: function() {
+        return this.model.isTapped();
     },
-    tap: function(e) {
+
+    toggleTapped: function(event) {
+        if (this.isTapped()) {
+            this.untap();
+            return;
+        }
+        this.tap();
+    },
+
+    _tap: function(callback) {
         this.$el.addClass('tapped');
-        toast(this.model.getName() + " tapped");
+        this.model.tap();
+        callback && callback();
     },
-    untap: function(e) {
+
+    _untap: function(callback) {
         this.$el.removeClass('tapped');
-        toast(this.model.getName() + " untapped");
+        this.model.untap();
+        callback && callback();
     },
+
+    tap: function(event) {
+        var self = this;
+        if (!this.isTapped()) {
+            player.addGameAction(
+                new GameAction(
+                    this.model.getName() + " tapped",
+                    function(callback) { self._tap(callback); },
+                    function(callback) { self._untap(callback); }
+                )
+            );
+        }
+    },
+
+    untap: function(event) {
+        var self = this;
+        if (this.isTapped()){
+            player.addGameAction(
+                new GameAction(
+                    this.model.getName() + " untapped",
+                    function(callback) { self._untap(callback); },
+                    function(callback) { self._tap(callback); }
+                )
+            );
+
+        }
+    },
+
     attack: function(e) {
         var self = this;
         if (!this.$el.hasClass('tapped') && this.model.isType('creature')) {
@@ -154,6 +218,7 @@ var CardView = Backbone.View.extend({
             },300);
         }
     },
+
     endCombat: function(e) {
         $('.creatures').append(this.$el);
         this.$el.removeClass('attacking');
@@ -257,9 +322,10 @@ var CardView = Backbone.View.extend({
         if (args.cardType && !this.model.isType(args.cardType)) {
             return;
         }
-        toast(this.model.getName() + " put into the " + args.zone + " from the battlefield.");
-        player.zones.battlefield.remove(this.model);
-        player.zones[args.zone].add(this.model);
+        // toast(this.model.getName() + " put into the " + args.zone + " from the battlefield.");
+        // player.zones.battlefield.remove(this.model);
+        // player.zones[args.zone].add(this.model);
+        this.model.addTo( player.zones[args.zone]);
         this.remove();
         player.updateCounts();
     },

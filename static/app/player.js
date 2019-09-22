@@ -9,13 +9,13 @@ var Player = function() {
 
 
     this.zones = {
-        exile: new Zone(),
-        graveyard: new Zone(),
-        library: new Zone(),
-        hand: new Zone(),
-        battlefield: new Zone(),
-        stack: new Zone(),
-        command: new Zone()
+        exile: new Zone().setName('exile'),
+        graveyard: new Zone().setName('graveyard'),
+        library: new Zone().setName('library'),
+        hand: new Zone().setName('hand'),
+        battlefield: new Zone().setName('battlefield'),
+        stack: new Zone().setName('stack'),
+        command: new Zone().setName('command')
     }
 
     // TODO
@@ -71,7 +71,25 @@ var Player = function() {
 
 Player.prototype.addGameAction = function(gameAction) {
     gameAction.do();
+    toast(gameAction.message);
     this.gameActions.push(gameAction);
+    this.currentGameAction = this.gameActions.length - 1;
+}
+
+Player.prototype.undo = function() {
+    if (-1 == this.currentGameAction) {
+        return;
+    }
+    this.gameActions[this.currentGameAction].undo();
+    this.currentGameAction--;
+};
+
+Player.prototype.redo = function() {
+    if (this.currentGameAction == this.gameActions.length - 1) {
+        return;
+    }
+    this.currentGameAction++;
+    this.gameActions[this.currentGameAction].do();
 }
 
 Player.prototype.addListeners = function() {
@@ -180,10 +198,22 @@ Player.prototype.addListeners = function() {
             $('.mtgcard').addClass('selected');
         }
 
-        //ctrl+G
+        // ctrl+G
         if (e.ctrlKey && 71 == e.which) {
             e.preventDefault();
             $('.selected').trigger('changeZone', {zone: 'graveyard'});
+        }
+
+        // ctrl+z
+        if (e.ctrlKey && 90 == e.which) {
+            e.preventDefault();
+            self.undo();
+        }
+
+        // ctrl+r
+        if (e.ctrlKey && 82 == e.which) {
+            e.preventDefault();
+            self.redo();
         }
     });
 

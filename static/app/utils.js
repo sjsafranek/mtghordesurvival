@@ -33,10 +33,10 @@ var GameUtils = {
 
 
 
-var GameAction = function(message, runCallback, undoCallback) {
+var GameAction = function(message, doCallback, undoCallback) {
     this.callbacks = {
-        do: runCallback,
-        undo: undoCallback
+        do: doCallback || noop,
+        undo: undoCallback || noop
     }
     this.message = message;
 }
