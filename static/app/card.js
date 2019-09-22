@@ -54,6 +54,10 @@ var Card = Backbone.Model.extend({
         return this.get('name');
     },
 
+    getText: function() {
+        return this.get('oracle_text');
+    },
+
     getTypes: function() {
         return this.get('type_line').toLowerCase().replace(' —','').split(' ');
     },
