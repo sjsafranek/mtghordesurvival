@@ -3,28 +3,79 @@ var Card = Backbone.Model.extend({
     // Override for scryfall 'id' field.
     // Backbone will use this attribute to make models singletons.
     idAttribute: "_id",
-    defaults: {},
+    defaults: {
+
+    },
+
     initialize: function(){
         this.clearState();
     },
+
     clearState: function() {
         this.state = {
             tapped: false,
             counters: {},
             attacking: false,
             blocking: false,
-            damage: 0
+            damage: 0,
+            controller: undefined,
+            owner: undefined,
+            summoningSickness: false
         };
     },
+
+    haste: function() {
+        this.state.summoningSickness = false;
+    },
+
+    assignDamage: function(damage) {
+        this.state.damage += damage;
+    },
+
+    clearDamage: function() {
+        this.state.damage = 0;
+    }
+
+    getPower: function() {
+        if (this.get('power')) {
+            return parseInt(this.get('power'));
+        }
+        return null;
+    },
+
+    getToughness: function() {
+        if (this.get('toughness')) {
+            return parseInt(this.get('toughness'));
+        }
+        return null;
+    },
+
     getName: function() {
         return this.get('name');
     },
+
     getTypes: function() {
         return this.get('type_line').toLowerCase().replace(' —','').split(' ');
     },
+
     isType: function(cardType) {
         return -1 != this.getTypes().indexOf(cardType.toLowerCase());
     },
+
+    getCMC: function() {
+        return this.get('cmc');
+    },
+
+    getColors: function() {
+        return this.get('colors').map(function(d) {
+            return d.toLowerCase();
+        });
+    },
+
+    isColor: function(color){
+        return -1 != this.getColors().indexOf(color.toLowerCase());
+    },
+
     isPermanent: function() {
         const cardTypes = [
             'Artifact',
@@ -40,12 +91,18 @@ var Card = Backbone.Model.extend({
         }
         return false;
     },
+
     getImage: function(size) {
         return this.get('image_uris')[size||'small'];
     },
-    changeZone: function() {
 
+    addTo: function(zone) {
+        if (this.collection) {
+            this.collection.remove(this);
+        }
+        zone.add(this);
     }
+
 });
 
 

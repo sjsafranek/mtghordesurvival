@@ -1,6 +1,13 @@
 var Player = function() {
     var self = this;
 
+    this.turnNumber = 0;
+    this.phase;
+    this.step;
+    this.currentGameAction = -1;
+    this.gameActions = [];
+
+
     this.zones = {
         exile: new Zone(),
         graveyard: new Zone(),
@@ -60,6 +67,11 @@ var Player = function() {
 
     this.updateCounts();
     this.addListeners();
+}
+
+Player.prototype.addGameAction = function(gameAction) {
+    gameAction.do();
+    this.gameActions.push(gameAction);
 }
 
 Player.prototype.addListeners = function() {
@@ -254,7 +266,8 @@ Player.prototype.takeTurn = function(callback) {
         });
     }).then(function(result) {
         callback && callback();
-    })
+    });
+
 }
 
 Player.prototype.passPriority = function(callback) {
