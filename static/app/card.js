@@ -20,24 +20,114 @@ var Card = Backbone.Model.extend({
         this.set('__controller', undefined);
         this.set('__owner', undefined);
         this.set('__summoningSickness', false);
+        this.set('__selected', false);
     },
 
-    tap: function() {
+    _select: function() {
+        this.set('__selected', true);
+    },
+
+    _unselect: function() {
+        this.set('__selected', false);
+    },
+
+    toggleSelect: function() {
+        this.isSelected() ?
+            this._unselect() : this._select();
+    },
+
+    isSelected: function() {
+        return this.get('__selected');
+    },
+
+    select: function(callback) {
+        if (!this.isSelected()) {
+            this._select();
+        }
+    },
+
+    unselect: function(callback) {
+        if (this.isSelected()) {
+            this._unselect();
+        }
+    },
+
+    _tap: function() {
         this.set('__tapped', true);
     },
 
-    untap: function() {
+    _untap: function() {
         this.set('__tapped', false);
     },
 
-    attack: function() {
-        this.set('__tapped', true);
-        this.set('__attacking', true);
+    tap: function(callback) {
+        var self = this;
+        if (!this.isTapped()) {
+            var action = new GameAction(
+                    this.getName() + " tapped",
+                    function(callback) { self._tap(callback); },
+                    function(callback) { self._untap(callback); }
+                );
+            callback && callback(action);
+            !callback && player.addGameAction(action);
+        }
     },
 
-    _nocombat: function() {
+    untap: function(callback) {
+        var self = this;
+        if (this.isTapped()) {
+            var action = new GameAction(
+                    this.getName() + " untapped",
+                    function(callback) { self._untap(callback); },
+                    function(callback) { self._tap(callback); }
+                );
+            callback && callback(action);
+            !callback && player.addGameAction(action);
+        }
+    },
+
+    _attack: function(callback) {
+        this.set('__tapped', true);
+        this.set('__attacking', true);
+        callback && callback();
+    },
+
+    _nocombat: function(callback) {
         this.set('__attacking', false);
         this.set('__blocking', false);
+        callback && callback();
+    },
+
+    attack: function() {
+        var self = this;
+        if (!this.isAttacking() && !this.isTapped() && this.isType('creature')) {
+            return new GameAction(
+                this.getName() + " is attacking",
+                function(callback) { self._attack(callback); },
+                function(callback) { self._untap(); self._nocombat(callback); }
+            );
+        }
+        return null;
+    },
+
+    nocombat: function() {
+        var self = this;
+        if (this.isAttacking() && this.isType('creature')) {
+            return new GameAction(
+                this.getName() + " is leaving combat",
+                function(callback) { self._nocombat(callback); },
+                function(callback) { self._attack(callback); }
+            );
+        }
+        return null
+    },
+
+    isAttacking: function() {
+        return this.isType('creature') ? this.get('__attacking') : undefined;
+    },
+
+    isBlocking: function() {
+        return this.isType('creature') ? this.get('__blocking') : undefined;
     },
 
     isTapped: function() {
@@ -128,12 +218,11 @@ var Card = Backbone.Model.extend({
         callback && callback();
     },
 
-    moveTo: function(newZone) {
+    moveTo: function(newZone, callback) {
         var self = this;
         var oldZone = this.collection;
         if (newZone != oldZone) {
-            player.addGameAction(
-                new GameAction(
+            var action = new GameAction(
                     this.getName() + " put into the " + newZone.getName() + (oldZone ? " from the " + oldZone.getName() : ""),
                     function(callback) {
                         self._moveTo(newZone, callback);
@@ -141,8 +230,9 @@ var Card = Backbone.Model.extend({
                     function(callback) {
                         self._moveTo(oldZone, callback);
                     }
-                )
-            );
+                );
+            callback && callback(action);
+            !callback && player.addGameAction(action);
         }
     }
 
@@ -160,7 +250,10 @@ var CardView = Backbone.View.extend({
 
         this.onChange({
             changed: {
-                __tapped: this.model.isTapped()
+                __tapped: this.model.isTapped(),
+                __attacking: this.model.isAttacking(),
+                __blocking: this.model.isBlocking(),
+                __selected: this.model.isSelected()
             }
         });
 
@@ -172,13 +265,12 @@ var CardView = Backbone.View.extend({
         'contextmenu': 'contextMenu',
         'changeZone': 'changeZone',
         'tap': 'tap',
-        // 'attack': 'attack',
         'untap': 'untap',
-        // 'endCombat': 'endCombat',
         'destroy': 'destroy'
     },
 
     onChange: function(event) {
+        var self = this;
         var changed = event.changed;
         undefined != changed.__tapped &&  changed.__tapped && this.$el.addClass('tapped');
         undefined != changed.__tapped && !changed.__tapped && this.$el.removeClass('tapped');
@@ -195,6 +287,8 @@ var CardView = Backbone.View.extend({
        }
         undefined != changed.__attacking && !changed.__attacking && nocombat();
 
+        undefined != changed.__selected &&  changed.__selected && this.$el.addClass('selected');
+        undefined != changed.__selected && !changed.__selected && this.$el.removeClass('selected');
     },
 
     destroy: function(event, args) {
@@ -208,92 +302,27 @@ var CardView = Backbone.View.extend({
     },
 
     toggleTapped: function(event) {
-        if (this.isTapped()) {
-            this.untap();
-            return;
-        }
-        this.tap();
-    },
-
-    _tap: function(callback) {
-        this.model.tap();
-        callback && callback();
-    },
-
-    _untap: function(callback) {
-        this.model.untap();
-        callback && callback();
+        this.isTapped() ?
+            this.model.untap() : this.model.tap();
     },
 
     tap: function(event) {
-        var self = this;
-        if (!this.isTapped()) {
-            player.addGameAction(
-                new GameAction(
-                    this.model.getName() + " tapped",
-                    function(callback) { self._tap(callback); },
-                    function(callback) { self._untap(callback); }
-                )
-            );
-        }
+        this.model.tap();
     },
 
     untap: function(event) {
-        var self = this;
-        if (this.isTapped()){
-            player.addGameAction(
-                new GameAction(
-                    this.model.getName() + " untapped",
-                    function(callback) { self._untap(callback); },
-                    function(callback) { self._tap(callback); }
-                )
-            );
-        }
+        this.model.untap();
     },
 
-/*
-    _attack: function(callback) {
-        this.model.attack();
-        callback && callback();
-    },
-
-    _nocombat: function(callback) {
-        this.model._nocombat();
-        callback && callback();
-    },
-
-    isAttacking: function() {
-        return this.model.get('__attacking');
-    },
-
-    attack: function(event) {
-        var self = this;
-        if (!this.isAttacking()) {
-            player.addGameAction(
-                new GameAction(
-                    thos.model.getName() + " attacking",
-                    function(callback) { self._attack(callback); },
-                    function(callback) { self._nocombat(callback); }
-                )
-            );
-        }
-    },
-
-
-    endCombat: function(e) {
-        // $('.creatures').append(this.$el);
-        // this.$el.removeClass('attacking');
-        // this.model.end
-    },
-*/
-
-    selectCard: function(e){
+    selectCard: function(event){
+        event.preventDefault();
         $(".mtgcard-menu").removeClass("show").hide();  // remove contextMenu
-        if (!e.ctrlKey) {
-            $('.selected').removeClass('selected');
+        if (!event.ctrlKey) {
+            this.model.select();
         }
-        this.$el.toggleClass('selected');
+        this.model.toggleSelect();
     },
+
     contextMenu: function(e) {
         var self = this;
         e.preventDefault();
@@ -320,31 +349,31 @@ var CardView = Backbone.View.extend({
                             $menu.remove();
                             self.untap()
                         }),
-                $('<a>')
-                    .addClass('dropdown-item')
-                    .text('add counter')
-                    .on('click', function(){
-                        $menu.remove();
-
-                        self.counters['+1/+1']++;
-                        self.counters['-1/-1']++;
-
-                        self.$el
-                            .find('.plus-one-plus-one-counter')
-                            .text(
-                                self.counters['+1/+1']
-                            )
-                            .show();
-
-                        self.$el
-                            .find('.minus-one-minus-one-counter')
-                            .text(
-                                self.counters['-1/-1']
-                            )
-                            .show();
-
-                        debugger;
-                    }),
+                // $('<a>')
+                //     .addClass('dropdown-item')
+                //     .text('add counter')
+                //     .on('click', function(){
+                //         $menu.remove();
+                //
+                //         self.counters['+1/+1']++;
+                //         self.counters['-1/-1']++;
+                //
+                //         self.$el
+                //             .find('.plus-one-plus-one-counter')
+                //             .text(
+                //                 self.counters['+1/+1']
+                //             )
+                //             .show();
+                //
+                //         self.$el
+                //             .find('.minus-one-minus-one-counter')
+                //             .text(
+                //                 self.counters['-1/-1']
+                //             )
+                //             .show();
+                //
+                //         debugger;
+                //     }),
                 $('<a>')
                     .addClass('dropdown-item')
                     .text('change zone')
@@ -382,6 +411,7 @@ var CardView = Backbone.View.extend({
 
         return false;    // blocks default Webbrowser right click menu
     },
+
     changeZone: function(e, args) {
         var self = this;
         if (args.cardType && !this.model.isType(args.cardType)) {
@@ -390,8 +420,10 @@ var CardView = Backbone.View.extend({
 
         this.model.moveTo(player.zones[args.zone]);
     },
+
     render: function(){
         this.$el.html(this.template(this.model.attributes));
         return this;
     }
+
 });

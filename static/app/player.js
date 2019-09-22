@@ -19,7 +19,6 @@ var Player = function() {
     }
 
 
-
     this.zones.battlefield.on('add', function(card){
         var $container = $('<div>')
             .addClass('mtgcard')
@@ -51,11 +50,8 @@ var Player = function() {
             },
         });
 
-        //
-
         player.updateCounts();
     });
-
 
     this.zones.battlefield.on('remove', function(card) {
         $('.battlefield .mtgcard').trigger('destroy', {
@@ -65,59 +61,12 @@ var Player = function() {
     });
 
 
-
-    // TODO
-    //  - Fix callbacks for Backbone Model
-    this._callbacks = {
-        "Grave Titan": function() {
-            // etb create two tokens
-            self.resolveSpell(zombie);
-            self.resolveSpell(zombie);
-        },
-        "Damnation": function() {
-            // destroy all creatures
-            self.boardWipe('graveyard', 'Creature');
-        },
-        "Army of the Damned": function() {
-            // create 13 zombies
-            for (var i=0; i<13; i++) {
-                self.resolveSpell(zombie);
-            }
-
-            // has flashback
-            var cards = self.zones.graveyard.filter(function(card) {
-                return "Army of the Damned" == card.getName();
-            });
-
-            for (var i=0; i<cards.length; i++) {
-                var card = cards[i];
-                self.zones.graveyard.remove(card);
-                self.castSpell(card, function(){
-                    self.zones.graveyard.remove(card);
-                    self.zones.exile.add(card);
-                });
-            }
-            //.end
-
-            self.updateCounts();
-        },
-        "Twilight's Call": function() {
-            // all creatures from graveyard to battlefield
-            var cards = self.getCardsByType('creature', 'graveyard');
-            for (var i=0; i<cards.length; i++) {
-                var card = cards[i];
-                self.zones.graveyard.remove(card);
-                self.resolveSpell(card);
-            }
-            self.updateCounts();
-        }
-    }
-
     this.updateCounts();
     this.addListeners();
 }
 
 Player.prototype.addGameAction = function(gameAction) {
+    console.log('TODO: remove any following game actions');
     gameAction.do();
     toast(gameAction.message);
     this.gameActions.push(gameAction);
@@ -240,17 +189,8 @@ Player.prototype.addListeners = function() {
 
     // hot keys
     $(window).on('keydown', function(e) {
-        // ctrl+A
-        if (e.ctrlKey && 65 == e.which) {
-            e.preventDefault();
-            $('.mtgcard').addClass('selected');
-        }
+        console.log(e);
 
-        // ctrl+G
-        if (e.ctrlKey && 71 == e.which) {
-            e.preventDefault();
-            $('.selected').trigger('changeZone', {zone: 'graveyard'});
-        }
 
         // ctrl+z
         if (e.ctrlKey && 90 == e.which) {
@@ -262,6 +202,41 @@ Player.prototype.addListeners = function() {
         if (e.ctrlKey && 82 == e.which) {
             e.preventDefault();
             self.redo();
+        }
+
+        // ctrl+A
+        if (e.ctrlKey && 65 == e.which) {
+            e.preventDefault();
+            // select all
+            player.zones.battlefield.each(function(card) {
+                card.select();
+            });
+        }
+
+
+        // alt+g
+        if (e.altKey && 71 == e.which) {
+            e.preventDefault();
+            // boardwipe selected
+            self.boardWipe(self.zones.graveyard);
+        }
+
+        // alt+e
+        if (e.altKey && 69 == e.which) {
+            e.preventDefault();
+            self.boardWipe(self.zones.exile);
+        }
+
+        // alt+t
+        if (e.altKey && 84 == e.which) {
+            e.preventDefault();
+            self.tapSelected();
+        }
+
+        // alt+u
+        if (e.altKey && 85 == e.which) {
+            e.preventDefault();
+            self.untapSelected();
         }
     });
 
@@ -324,10 +299,11 @@ Player.prototype.takeTurn = function(callback) {
     }).then(function(result) {
         return new Promise((resolve, reject) => {
             // remove from combat zone
-            $('.battlefield .mtgcard.creature').trigger('endCombat');
-            toast('Post Combat Main Phase');
-            self.mainPhase(function() {
-                self.passPriority(resolve);
+            self.endCombat(function() {
+                toast('Post Combat Main Phase');
+                self.mainPhase(function() {
+                    self.passPriority(resolve);
+                });
             });
         });
     }).then(function(result) {
@@ -376,12 +352,107 @@ Player.prototype.beginningPhase = function(callback) {
     callback && callback();
 }
 
+
+Player.prototype.addGameActionGroup = function(message, actions) {
+    this.addGameAction(
+        new GameAction(
+            message,
+            function(callback) {
+                for (var i=0; i<actions.length; i++) {
+                    actions[i].do();
+                }
+                callback && callback();
+            },
+            function(callback) {
+                for (var i=0; i<actions.length; i++) {
+                    actions[i].undo();
+                }
+                callback && callback();
+            }
+        )
+    );
+}
+
 Player.prototype.combatPhase = function(callback) {
-    toast('Declare attackers step');
-    $('.battlefield .mtgcard.creature').trigger('attack');
-    console.log('TODO');
+    var creatures = this.zones.battlefield.filter(function(card) {
+        return card.isType('Creature');
+    });
+
+    var actions = [];
+    for (var i=0; i<creatures.length; i++) {
+        var action = creatures[i].attack();
+        action && actions.push(action);
+    }
+
+    this.addGameActionGroup('Declare attackers step', actions);
+
     callback && callback();
 }
+
+Player.prototype.endCombat = function(callback) {
+    var creatures = this.zones.battlefield.filter(function(card) {
+        return card.isType('Creature');
+    });
+
+    var actions = [];
+    for (var i=0; i<creatures.length; i++) {
+        var action = creatures[i].nocombat();
+        action && actions.push(action);
+    }
+
+    this.addGameActionGroup('End combat phase', actions);
+    callback && callback();
+}
+
+Player.prototype.boardWipe = function(zone, cardType) {
+    var cards = this.zones.battlefield.filter(function(card) {
+        if (!cardType) {
+            return card.isSelected();
+        }
+        return card.isType(cardType);
+    });
+
+    var actions = [];
+    for (var i=0; i<cards.length; i++){
+        cards[i].moveTo(zone, function(action) {
+            actions.push(action);
+        });
+    }
+
+    this.addGameActionGroup('Board wipe', actions);
+}
+
+
+Player.prototype.tapSelected = function() {
+    var cards = this.zones.battlefield.filter(function(card) {
+        return card.isSelected();
+    });
+
+    var actions = [];
+    for (var i=0; i<cards.length; i++){
+        cards[i].tap(function(action) {
+            actions.push(action);
+        });
+    }
+
+    this.addGameActionGroup('Tap all', actions);
+}
+
+Player.prototype.untapSelected = function() {
+    var cards = this.zones.battlefield.filter(function(card) {
+        return card.isSelected();
+    });
+
+    var actions = [];
+    for (var i=0; i<cards.length; i++){
+        cards[i].untap(function(action) {
+            actions.push(action);
+        });
+    }
+
+    this.addGameActionGroup('Untap all', actions);
+}
+
 
 Player.prototype.endingPhase = function(callback) {
     callback && callback();
@@ -468,13 +539,6 @@ Player.prototype.castSpell = function(card, callback) {
     });
 }
 
-Player.prototype.boardWipe = function(zone, cardType) {
-    $('.mtgcard').trigger('changeZone', {
-        zone: zone || 'graveyard',
-        cardType: cardType
-    });
-}
-
 Player.prototype.resolveSpell = function(card, callback) {
     var self = this;
 
@@ -488,6 +552,4 @@ Player.prototype.resolveSpell = function(card, callback) {
     }
 
     callback && callback();
-
-    this._callbacks[card.getName()] && this._callbacks[card.getName()]();
 }
