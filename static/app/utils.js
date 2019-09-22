@@ -1,5 +1,9 @@
 
 
+function noop(){}
+
+
+
 var GameUtils = {
     selectZoneOptions: function(opts) {
         opts = opts || {}
@@ -28,4 +32,19 @@ var GameUtils = {
 }
 
 
-function noop(){}
+
+var GameAction = function(message, runCallback, undoCallback) {
+    this.callbacks = {
+        do: runCallback,
+        undo: undoCallback
+    }
+    this.message = message;
+}
+
+GameAction.prototype.do = function() {
+    this.callbacks.do();
+}
+
+GameAction.prototype.undo = function() {
+    this.callbacks.undo();
+}
