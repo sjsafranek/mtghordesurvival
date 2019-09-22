@@ -41,10 +41,10 @@ var GameAction = function(message, runCallback, undoCallback) {
     this.message = message;
 }
 
-GameAction.prototype.do = function() {
-    this.callbacks.do();
+GameAction.prototype.do = function(callback) {
+    return this.callbacks.do(callback);
 }
 
-GameAction.prototype.undo = function() {
-    this.callbacks.undo();
+GameAction.prototype.undo = function(callback) {
+    return this.callbacks.undo(callback);
 }
