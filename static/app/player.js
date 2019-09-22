@@ -1,3 +1,4 @@
+
 var Player = function() {
     var self = this;
 
@@ -6,6 +7,7 @@ var Player = function() {
     this.step;
     this.currentGameAction = -1;
     this.gameActions = [];
+    this._continueCallback;
 
 
     this.zones = {
@@ -16,6 +18,15 @@ var Player = function() {
         battlefield: new Zone().setName('battlefield'),
         stack: new Zone().setName('stack'),
         command: new Zone().setName('command')
+    }
+
+    for (var zone in this.zones) {
+        this.zones[zone].on('add', function(card){
+            self.updateCounts();
+        });
+        this.zones[zone].on('remove', function(card){
+            self.updateCounts();
+        });
     }
 
 
@@ -66,7 +77,11 @@ var Player = function() {
 }
 
 Player.prototype.addGameAction = function(gameAction) {
-    console.log('TODO: remove any following game actions');
+    if (!gameAction) return;
+    if (this.currentGameAction != this.gameActions.length - 1) {
+        console.log('TODO: remove any following game actions');
+        debugger;
+    }
     gameAction.do();
     toast(gameAction.message);
     this.gameActions.push(gameAction);
@@ -174,7 +189,7 @@ Player.prototype.addListeners = function() {
 
         $(key).droppable({
             drop: function(event , ui) {
-                ui.draggable.trigger('changeZone', {zone: ui2Zone[key]});
+                ui.draggable.trigger('moveTo', {zone: ui2Zone[key]});
                 $(event.target).removeClass('draggable-over');
             },
             over: function(event, ui) {
@@ -354,6 +369,7 @@ Player.prototype.beginningPhase = function(callback) {
 
 
 Player.prototype.addGameActionGroup = function(message, actions) {
+    actions = actions.filter(function(action) { return action; });
     this.addGameAction(
         new GameAction(
             message,
@@ -377,15 +393,9 @@ Player.prototype.combatPhase = function(callback) {
     var creatures = this.zones.battlefield.filter(function(card) {
         return card.isType('Creature');
     });
-
-    var actions = [];
-    for (var i=0; i<creatures.length; i++) {
-        var action = creatures[i].attack();
-        action && actions.push(action);
-    }
-
-    this.addGameActionGroup('Declare attackers step', actions);
-
+    this.addGameActionGroup('Declare attackers step', creatures.map(function(card){
+        return card.attack();
+    }));
     callback && callback();
 }
 
@@ -393,14 +403,9 @@ Player.prototype.endCombat = function(callback) {
     var creatures = this.zones.battlefield.filter(function(card) {
         return card.isType('Creature');
     });
-
-    var actions = [];
-    for (var i=0; i<creatures.length; i++) {
-        var action = creatures[i].nocombat();
-        action && actions.push(action);
-    }
-
-    this.addGameActionGroup('End combat phase', actions);
+    this.addGameActionGroup('End combat phase', creatures.map(function(card) {
+        return card.nocombat();
+    }));
     callback && callback();
 }
 
@@ -411,48 +416,32 @@ Player.prototype.boardWipe = function(zone, cardType) {
         }
         return card.isType(cardType);
     });
-
     var actions = [];
     for (var i=0; i<cards.length; i++){
         cards[i].moveTo(zone, function(action) {
             actions.push(action);
         });
     }
-
     this.addGameActionGroup('Board wipe', actions);
 }
-
 
 Player.prototype.tapSelected = function() {
     var cards = this.zones.battlefield.filter(function(card) {
         return card.isSelected();
     });
-
-    var actions = [];
-    for (var i=0; i<cards.length; i++){
-        cards[i].tap(function(action) {
-            actions.push(action);
-        });
-    }
-
-    this.addGameActionGroup('Tap all', actions);
+    this.addGameActionGroup('Tap all', cards.map(function(card) {
+        return card.tap();
+    }));
 }
 
 Player.prototype.untapSelected = function() {
     var cards = this.zones.battlefield.filter(function(card) {
         return card.isSelected();
     });
-
-    var actions = [];
-    for (var i=0; i<cards.length; i++){
-        cards[i].untap(function(action) {
-            actions.push(action);
-        });
-    }
-
-    this.addGameActionGroup('Untap all', actions);
+    this.addGameActionGroup('Untap all', cards.map(function(card){
+        return card.untap();
+    }));
 }
-
 
 Player.prototype.endingPhase = function(callback) {
     callback && callback();
@@ -465,15 +454,12 @@ Player.prototype.drawCard = function() {
     }
     toast('Draw card');
     var card = this.zones.library.chooseRandom();
-    this.zones.library.remove(card);
-    this.zones.hand.add(card);
-    this.updateCounts();
+    card.moveTo(this.zones.hand)
     return card;
 }
 
 Player.prototype.mainPhase = function(callback) {
     var self = this;
-
     if (0 == self.zones.hand.length) {
         callback && callback();
         return;
@@ -485,9 +471,7 @@ Player.prototype.mainPhase = function(callback) {
     this.zones.hand.reduce( (previousPromise, nextCard) => {
         return previousPromise.then(() => {
             return new Promise((resolve, reject) => {
-                self.zones.hand.remove(nextCard);
                 return self.castSpell(nextCard, function(){
-                    self.updateCounts();
                     resolve();
                     // continue when no cards are left to cast
                     if (0 == self.zones.hand.length) {
@@ -529,8 +513,7 @@ Player.prototype.castSpell = function(card, callback) {
             Swal.fire(
                 GameUtils.selectZoneOptions({exclude:['battlefield']})
             ).then(function(result) {
-                var zone = result.value || 'graveyard' ;
-                self.zones[zone].add(card);
+                card.moveTo(zone);
                 callback && callback();
             });
             return;
@@ -546,9 +529,9 @@ Player.prototype.resolveSpell = function(card, callback) {
 
     card.resetState();
     if (card.isPermanent()) {
-        this.zones.battlefield.add(card);
+        card.moveTo(this.zones.battlefield);
     } else {
-        this.zones.graveyard.add(card);
+        card.moveTo(this.zones.graveyard);
     }
 
     callback && callback();

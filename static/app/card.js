@@ -60,30 +60,28 @@ var Card = Backbone.Model.extend({
         this.set('__tapped', false);
     },
 
-    tap: function(callback) {
+    tap: function() {
         var self = this;
         if (!this.isTapped()) {
-            var action = new GameAction(
+            return new GameAction(
                     this.getName() + " tapped",
                     function(callback) { self._tap(callback); },
                     function(callback) { self._untap(callback); }
                 );
-            callback && callback(action);
-            !callback && player.addGameAction(action);
         }
+        return null;
     },
 
-    untap: function(callback) {
+    untap: function() {
         var self = this;
         if (this.isTapped()) {
-            var action = new GameAction(
+            return new GameAction(
                     this.getName() + " untapped",
                     function(callback) { self._untap(callback); },
                     function(callback) { self._tap(callback); }
                 );
-            callback && callback(action);
-            !callback && player.addGameAction(action);
         }
+        return null;
     },
 
     _attack: function(callback) {
@@ -263,7 +261,7 @@ var CardView = Backbone.View.extend({
         'click' : 'selectCard',
         'dblclick': 'toggleTapped',
         'contextmenu': 'contextMenu',
-        'changeZone': 'changeZone',
+        'moveTo': 'moveTo',
         'tap': 'tap',
         'untap': 'untap',
         'destroy': 'destroy'
@@ -303,15 +301,15 @@ var CardView = Backbone.View.extend({
 
     toggleTapped: function(event) {
         this.isTapped() ?
-            this.model.untap() : this.model.tap();
+            player.addGameAction(this.model.untap()) : player.addGameAction(this.model.tap());
     },
 
     tap: function(event) {
-        this.model.tap();
+        player.addGameAction(this.model.tap());
     },
 
     untap: function(event) {
-        this.model.untap();
+        player.addGameAction(this.model.untap());
     },
 
     selectCard: function(event){
@@ -387,12 +385,10 @@ var CardView = Backbone.View.extend({
                             if (zone) {
                                 var $elems = $('.mtgcard.selected');
                                 if ($elems.length) {
-                                    $elems.trigger('changeZone', {zone: zone});
+                                    $elems.trigger('moveTo', {zone: zone});
                                     return;
                                 }
-                                self.remove();
-                                self.zones.battlefield.remove(self.model);
-                                self.zones[zone].add(self.model);
+                                self.moveTo(null, {zone: zone});
                             }
                         });
 
@@ -412,12 +408,11 @@ var CardView = Backbone.View.extend({
         return false;    // blocks default Webbrowser right click menu
     },
 
-    changeZone: function(e, args) {
+    moveTo: function(e, args) {
         var self = this;
         if (args.cardType && !this.model.isType(args.cardType)) {
             return;
         }
-
         this.model.moveTo(player.zones[args.zone]);
     },
 
