@@ -8,44 +8,52 @@ var Card = Backbone.Model.extend({
     },
 
     initialize: function(){
-        this.clearState();
+        this.resetState();
     },
 
-    clearState: function() {
-        this.state = {
-            tapped: false,
-            counters: {},
-            attacking: false,
-            blocking: false,
-            damage: 0,
-            controller: undefined,
-            owner: undefined,
-            summoningSickness: false
-        };
+    resetState: function() {
+        this.set('__tapped', false);
+        this.set('__counters', {});
+        this.set('__attacking', false);
+        this.set('__blocking', false);
+        this.set('__damage', 0);
+        this.set('__controller', undefined);
+        this.set('__owner', undefined);
+        this.set('__summoningSickness', false);
     },
 
     tap: function() {
-        this.state.tapped = true;
+        this.set('__tapped', true);
     },
 
     untap: function() {
-        this.state.tapped = false;
+        this.set('__tapped', false);
+    },
+
+    attack: function() {
+        this.set('__tapped', true);
+        this.set('__attacking', true);
+    },
+
+    _nocombat: function() {
+        this.set('__attacking', false);
+        this.set('__blocking', false);
     },
 
     isTapped: function() {
-        return this.state.tapped;
+        return this.get('__tapped');
     },
 
     haste: function() {
-        this.state.summoningSickness = false;
+        this.set('__summoningSicknes', false);
     },
 
     assignDamage: function(damage) {
-        this.state.damage += damage;
+        this.set('__damage', this.get('__damage') + damage);
     },
 
     clearDamage: function() {
-        this.state.damage = 0;
+        this.set('__damage', 0);
     },
 
     getPower: function() {
@@ -146,6 +154,16 @@ var Card = Backbone.Model.extend({
 var CardView = Backbone.View.extend({
     template: _.template($('#card_template').html()),
     initialize: function(){
+        var self = this;
+
+        this.model.on('change', this.onChange, this);
+
+        this.onChange({
+            changed: {
+                __tapped: this.model.isTapped()
+            }
+        });
+
         this.render();
     },
     events: {
@@ -160,8 +178,22 @@ var CardView = Backbone.View.extend({
         'destroy': 'destroy'
     },
 
+    onChange: function(event) {
+        var changed = event.changed;
+        undefined != changed.__tapped &&  changed.__tapped && this.$el.addClass('tapped');
+        undefined != changed.__tapped && !changed.__tapped && this.$el.removeClass('tapped');
+
+        undefined != changed.__attacking && !changed.__attacking && this.$el.addClass('attacking');
+        // allow for tap animation to complete
+        undefined != changed.__attacking && !changed.__attacking && setTimeout(function(){
+            $('.combatZone').append(self.$el);
+        },300);
+
+    },
+
     destroy: function(event, args) {
         if (args.cid != this.model.cid) return;
+        this.model.off('change', this.onChange, this);
         this.remove();
     },
 
@@ -178,13 +210,11 @@ var CardView = Backbone.View.extend({
     },
 
     _tap: function(callback) {
-        this.$el.addClass('tapped');
         this.model.tap();
         callback && callback();
     },
 
     _untap: function(callback) {
-        this.$el.removeClass('tapped');
         this.model.untap();
         callback && callback();
     },
@@ -212,22 +242,36 @@ var CardView = Backbone.View.extend({
                     function(callback) { self._tap(callback); }
                 )
             );
-
         }
     },
 
-    attack: function(e) {
+    _attack: function(callback) {
+        this.model.attack();
+        callback && callback();
+    },
+
+    _nocombat: function(callback) {
+        this.model._nocombat();
+        callback && callback();
+    },
+
+    isAttacking: function() {
+        return this.model.get('__attacking');
+    },
+
+    attack: function(event) {
         var self = this;
-        if (!this.$el.hasClass('tapped') && this.model.isType('creature')) {
-            this.tap();
-            this.$el.addClass('attacking');
-            // allow for tap animation to complete
-            setTimeout(function(){
-                $('.combatZone').append(self.$el);
-                toast(self.model.getName() + " attacking");
-            },300);
+        if (!this.isAttacking()) {
+            player.addGameAction(
+                new GameAction(
+                    thos.model.getName() + " attacking",
+                    function(callback) { self._attack(callback); },
+                    function(callback) { self._nocombat(callback); }
+                )
+            );
         }
     },
+
 
     endCombat: function(e) {
         $('.creatures').append(this.$el);
@@ -333,15 +377,8 @@ var CardView = Backbone.View.extend({
         if (args.cardType && !this.model.isType(args.cardType)) {
             return;
         }
-        // toast(this.model.getName() + " put into the " + args.zone + " from the battlefield.");
-        // player.zones.battlefield.remove(this.model);
-        // player.zones[args.zone].add(this.model);
-        this.model.moveTo(player.zones[args.zone]);
 
-        // this.model.on('change', function(event){
-        //
-        // });
-        //
+        this.model.moveTo(player.zones[args.zone]);
     },
     render: function(){
         this.$el.html(this.template(this.model.attributes));

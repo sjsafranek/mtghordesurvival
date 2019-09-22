@@ -50,7 +50,12 @@ var Player = function() {
                 }, 'fast');
             },
         });
+
+        //
+
+        player.updateCounts();
     });
+
 
     this.zones.battlefield.on('remove', function(card) {
         $('.battlefield .mtgcard').trigger('destroy', {
@@ -475,38 +480,9 @@ Player.prototype.resolveSpell = function(card, callback) {
 
     toast(card.getName() + ' resolved');
 
+    card.resetState();
     if (card.isPermanent()) {
         this.zones.battlefield.add(card);
-        // var $container = $('<div>')
-        //     .addClass('mtgcard')
-        //     .addClass( card.isType('creature') ? 'col-md-2' : 'col-md-4' )
-        //     .addClass(card.getTypes().join(' '));
-        //
-        // if (card.isType('creature')) {
-        //     $('.battlefield .creatures').append($container);
-        // } else {
-        //     $('.battlefield .noncreatures').append($container);
-        // }
-        //
-        // var cardView = new CardView({
-        //     el: $container,
-        //     model: card
-        // });
-        //
-        // $container.draggable({
-        //     opacity : 0.7,
-        //     revert  : 'invalid',
-        //     helper  : 'clone',
-        //     zIndex  : 100,
-        //     cursor  : 'move',
-        //     start: function (e, ui) {
-        //         ui.helper.animate({
-        //             width: 80,
-        //             height: 50
-        //         }, 'fast');
-        //     },
-        // });
-
     } else {
         this.zones.graveyard.add(card);
     }
