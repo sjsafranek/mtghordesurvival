@@ -112,7 +112,7 @@ var Card = Backbone.Model.extend({
         return this.get('image_uris')[size||'small'];
     },
 
-    _addTo: function(zone, callback) {
+    _moveTo: function(zone, callback) {
         if (this.collection) {
             this.collection.remove(this);
         }
@@ -120,15 +120,15 @@ var Card = Backbone.Model.extend({
         callback && callback();
     },
 
-    addTo: function(newZone) {
+    moveTo: function(newZone) {
         var self = this;
         var oldZone = this.collection;
         if (newZone != oldZone) {
             player.addGameAction(
                 new GameAction(
                     this.getName() + " put into the " + newZone.getName() + (oldZone ? " from the " + oldZone.getName() : ""),
-                    function(callback) { self._addTo(newZone, callback); },
-                    function(callback) { self._addTo(oldZone, callback); }
+                    function(callback) { self._moveTo(newZone, callback); },
+                    function(callback) { self._moveTo(oldZone, callback); }
                 )
             );
         }
@@ -325,7 +325,7 @@ var CardView = Backbone.View.extend({
         // toast(this.model.getName() + " put into the " + args.zone + " from the battlefield.");
         // player.zones.battlefield.remove(this.model);
         // player.zones[args.zone].add(this.model);
-        this.model.addTo( player.zones[args.zone]);
+        this.model.moveTo( player.zones[args.zone]);
         this.remove();
         player.updateCounts();
     },
