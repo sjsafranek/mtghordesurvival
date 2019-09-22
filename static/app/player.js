@@ -80,6 +80,7 @@ Player.prototype.addGameAction = function(gameAction) {
     if (!gameAction) return;
     if (this.currentGameAction != this.gameActions.length - 1) {
         console.log('TODO: remove any following game actions');
+        this.gameActions && this.gameActions.slice(0, this.currentGameAction - 1);
         debugger;
     }
     gameAction.do();
