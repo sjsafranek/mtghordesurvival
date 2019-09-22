@@ -127,8 +127,12 @@ var Card = Backbone.Model.extend({
             player.addGameAction(
                 new GameAction(
                     this.getName() + " put into the " + newZone.getName() + (oldZone ? " from the " + oldZone.getName() : ""),
-                    function(callback) { self._moveTo(newZone, callback); },
-                    function(callback) { self._moveTo(oldZone, callback); }
+                    function(callback) {
+                        self._moveTo(newZone, callback);
+                    },
+                    function(callback) {
+                        self._moveTo(oldZone, callback);
+                    }
                 )
             );
         }
@@ -152,7 +156,13 @@ var CardView = Backbone.View.extend({
         'tap': 'tap',
         'attack': 'attack',
         'untap': 'untap',
-        'endCombat': 'endCombat'
+        'endCombat': 'endCombat',
+        'destroy': 'destroy'
+    },
+
+    destroy: function(event, args) {
+        if (args.cid != this.model.cid) return;
+        this.remove();
     },
 
     isTapped: function() {
@@ -319,15 +329,19 @@ var CardView = Backbone.View.extend({
         return false;    // blocks default Webbrowser right click menu
     },
     changeZone: function(e, args) {
+        var self = this;
         if (args.cardType && !this.model.isType(args.cardType)) {
             return;
         }
         // toast(this.model.getName() + " put into the " + args.zone + " from the battlefield.");
         // player.zones.battlefield.remove(this.model);
         // player.zones[args.zone].add(this.model);
-        this.model.moveTo( player.zones[args.zone]);
-        this.remove();
-        player.updateCounts();
+        this.model.moveTo(player.zones[args.zone]);
+
+        // this.model.on('change', function(event){
+        //
+        // });
+        //
     },
     render: function(){
         this.$el.html(this.template(this.model.attributes));

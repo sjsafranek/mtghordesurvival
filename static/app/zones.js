@@ -20,5 +20,5 @@ var Zone = Backbone.Collection.extend({
     },
     getName: function() {
         return this.name;
-    },
+    }
 });

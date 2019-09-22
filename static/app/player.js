@@ -18,6 +18,49 @@ var Player = function() {
         command: new Zone().setName('command')
     }
 
+
+
+    this.zones.battlefield.on('add', function(card){
+        var $container = $('<div>')
+            .addClass('mtgcard')
+            .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
+            .addClass(card.getTypes().join(' '));
+
+        if (card.isType('creature')) {
+            $('.battlefield .creatures').append($container);
+        } else {
+            $('.battlefield .noncreatures').append($container);
+        }
+
+        var cardView = new CardView({
+            el: $container,
+            model: card
+        });
+
+        $container.draggable({
+            opacity : 0.7,
+            revert  : 'invalid',
+            helper  : 'clone',
+            zIndex  : 100,
+            cursor  : 'move',
+            start: function (e, ui) {
+                ui.helper.animate({
+                    width: 80,
+                    height: 50
+                }, 'fast');
+            },
+        });
+    });
+
+    this.zones.battlefield.on('remove', function(card) {
+        $('.battlefield .mtgcard').trigger('destroy', {
+            'cid': card.cid
+        });
+        player.updateCounts();
+    });
+
+
+
     // TODO
     //  - Fix callbacks for Backbone Model
     this._callbacks = {
@@ -434,35 +477,35 @@ Player.prototype.resolveSpell = function(card, callback) {
 
     if (card.isPermanent()) {
         this.zones.battlefield.add(card);
-        var $container = $('<div>')
-            .addClass('mtgcard')
-            .addClass( card.isType('creature') ? 'col-md-2' : 'col-md-4' )
-            .addClass(card.getTypes().join(' '));
-
-        if (card.isType('creature')) {
-            $('.battlefield .creatures').append($container);
-        } else {
-            $('.battlefield .noncreatures').append($container);
-        }
-
-        var cardView = new CardView({
-            el: $container,
-            model: card
-        });
-
-        $container.draggable({
-            opacity : 0.7,
-            revert  : 'invalid',
-            helper  : 'clone',
-            zIndex  : 100,
-            cursor  : 'move',
-            start: function (e, ui) {
-                ui.helper.animate({
-                    width: 80,
-                    height: 50
-                }, 'fast');
-            },
-        });
+        // var $container = $('<div>')
+        //     .addClass('mtgcard')
+        //     .addClass( card.isType('creature') ? 'col-md-2' : 'col-md-4' )
+        //     .addClass(card.getTypes().join(' '));
+        //
+        // if (card.isType('creature')) {
+        //     $('.battlefield .creatures').append($container);
+        // } else {
+        //     $('.battlefield .noncreatures').append($container);
+        // }
+        //
+        // var cardView = new CardView({
+        //     el: $container,
+        //     model: card
+        // });
+        //
+        // $container.draggable({
+        //     opacity : 0.7,
+        //     revert  : 'invalid',
+        //     helper  : 'clone',
+        //     zIndex  : 100,
+        //     cursor  : 'move',
+        //     start: function (e, ui) {
+        //         ui.helper.animate({
+        //             width: 80,
+        //             height: 50
+        //         }, 'fast');
+        //     },
+        // });
 
     } else {
         this.zones.graveyard.add(card);
