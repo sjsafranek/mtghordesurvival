@@ -172,9 +172,9 @@ var CardView = Backbone.View.extend({
         'contextmenu': 'contextMenu',
         'changeZone': 'changeZone',
         'tap': 'tap',
-        'attack': 'attack',
+        // 'attack': 'attack',
         'untap': 'untap',
-        'endCombat': 'endCombat',
+        // 'endCombat': 'endCombat',
         'destroy': 'destroy'
     },
 
@@ -183,11 +183,17 @@ var CardView = Backbone.View.extend({
         undefined != changed.__tapped &&  changed.__tapped && this.$el.addClass('tapped');
         undefined != changed.__tapped && !changed.__tapped && this.$el.removeClass('tapped');
 
-        undefined != changed.__attacking && !changed.__attacking && this.$el.addClass('attacking');
         // allow for tap animation to complete
-        undefined != changed.__attacking && !changed.__attacking && setTimeout(function(){
+        undefined != changed.__attacking && changed.__attacking && this.$el.addClass('attacking');
+        undefined != changed.__attacking && changed.__attacking && setTimeout(function(){
             $('.combatZone').append(self.$el);
         },300);
+
+        var nocombat = function() {
+           $('.creatures').append(self.$el);
+           self.$el.removeClass('attacking');
+       }
+        undefined != changed.__attacking && !changed.__attacking && nocombat();
 
     },
 
@@ -245,6 +251,7 @@ var CardView = Backbone.View.extend({
         }
     },
 
+/*
     _attack: function(callback) {
         this.model.attack();
         callback && callback();
@@ -274,9 +281,12 @@ var CardView = Backbone.View.extend({
 
 
     endCombat: function(e) {
-        $('.creatures').append(this.$el);
-        this.$el.removeClass('attacking');
+        // $('.creatures').append(this.$el);
+        // this.$el.removeClass('attacking');
+        // this.model.end
     },
+*/
+
     selectCard: function(e){
         $(".mtgcard-menu").removeClass("show").hide();  // remove contextMenu
         if (!e.ctrlKey) {
