@@ -1,10 +1,28 @@
 
-var Player = function() {
+var Player = function(options) {
     var self = this;
 
-    this.turnNumber = 0;
-    this.phase;
-    this.step;
+    this.gameMode = options;
+
+    // HACK
+    this.gameMode = {
+        name: "Zombie Horde Survival",
+        onDrawStep: function(game, data) {
+            if (data.card) {
+                var card = data.card;
+                while(game.zones.library.length && -1 != ['Zombie', 'Zombie Giant'].indexOf(card.getName())) {
+                    card = game.drawCard();
+                }
+            }
+        }
+    }
+
+    this.turn = {
+        number: 0,
+        phase: null,
+        step: null
+    }
+
     this.currentGameAction = -1;
     this.gameActions = [];
     this._continueCallback;
@@ -23,9 +41,11 @@ var Player = function() {
     for (var zone in this.zones) {
         this.zones[zone].on('add', function(card){
             self.updateCounts();
+            // this._order = [];
         });
         this.zones[zone].on('remove', function(card){
             self.updateCounts();
+            // this._order = [];
         });
     }
 
@@ -172,7 +192,6 @@ Player.prototype.addListeners = function() {
         });
     }
 
-
     var ui2Zone = {
         '.zoneHand': 'hand',
         '.zoneLibrary': 'library',
@@ -293,38 +312,51 @@ Player.prototype.takeTurn = function(callback) {
     //   - remove damage
     //   - pass the turn to opponent
 
+
+    this.addGameAction(
+        new GameAction(
+            "Turn - " + (this.number+1),
+            function(callback) {
+                self.turn.number++;
+                $('.turn-number').text(self.turn.number);
+                callback && callback();
+            },
+            function(callback) {
+                self.turn.number--;
+                $('.turn-number').text(self.turn.number);
+                callback && callback();
+            }
+        )
+    );
+
+
     var promise = new Promise((resolve, reject) => {
-        toast('Beginning Phase');
         self.beginningPhase(function() {
             self.passPriority(resolve);
         });
     }).then(function(result) {
         return new Promise((resolve, reject) => {
-            toast('Pre Combat Main Phase');
-            self.mainPhase(function() {
+            self.precombatMainPhase(function() {
                 self.passPriority(resolve);
             });
         });
     }).then(function(result) {
         return new Promise((resolve, reject) => {
-            toast('Combat Phase');
             self.combatPhase(function() {
-                self.passPriority(resolve);
-            });
-        });
-    }).then(function(result) {
-        return new Promise((resolve, reject) => {
-            // remove from combat zone
-            self.endCombat(function() {
-                toast('Post Combat Main Phase');
-                self.mainPhase(function() {
-                    self.passPriority(resolve);
+                self.passPriority(function(){
+                    // pass priority again....
+                    self.endCombat(resolve);
                 });
             });
         });
     }).then(function(result) {
         return new Promise((resolve, reject) => {
-            toast('Ending Phase');
+            self.postcombatMainPhase(function() {
+                self.passPriority(resolve);
+            });
+        });
+    }).then(function(result) {
+        return new Promise((resolve, reject) => {
             self.endingPhase(function() {
                 self.passPriority(resolve);
             });
@@ -337,7 +369,16 @@ Player.prototype.takeTurn = function(callback) {
     }).then(function(result) {
         callback && callback();
     });
+}
 
+Player.prototype.precombatMainPhase = function(callback){
+    this._nextPhase("Precombat Main Phase", "precombatmainphase");
+    this._mainPhase(callback);
+}
+
+Player.prototype.postcombatMainPhase = function(callback){
+    this._nextPhase("Postcombat Main Phase", "postcombatmainphase");
+    this._mainPhase(callback);
 }
 
 Player.prototype.passPriority = function(callback) {
@@ -351,19 +392,66 @@ Player.prototype.passPriority = function(callback) {
     $('.controls').append($elem);
 }
 
+Player.prototype._nextPhase = function(message, nextPhase) {
+    var self = this;
+    var prevPhase = this.phase;
+    var prevStep = this.step;
+    this.addGameAction(
+        new GameAction(
+            message,
+            function(callback) {
+                self.turn.phase = nextPhase;
+                self.turn.step = "";
+                $('.turn-phase').text(self.turn.phase);
+                $('.turn-step').text(self.turn.step);
+                callback && callback();
+            },
+            function(callback) {
+                self.turn.phase = prevPhase;
+                self.turn.step = prevStep;
+                $('.turn-phase').text(self.turn.phase);
+                $('.turn-step').text(self.turn.step);
+                callback && callback();
+            }
+        )
+    );
+}
+
+Player.prototype._nextStep = function(message, nextStep) {
+    var self = this;
+    var prevStep = this.step;
+    this.addGameAction(
+        new GameAction(
+            message,
+            function(callback) {
+                self.turn.step = nextStep;
+                $('.turn-step').text(self.turn.step);
+                callback && callback();
+            },
+            function(callback) {
+                self.turn.step = prevStep;
+                $('.turn-step').text(self.turn.step);
+                callback && callback();
+            }
+        )
+    );
+}
+
 Player.prototype.beginningPhase = function(callback) {
-    toast('Untap step');
-    $('.battlefield .mtgcard').trigger('untap');
+    var self = this;
 
-    toast('Draw step');
-    if (!this.zones.library.length) {
-        return;
-    }
+    this._nextPhase("Beginning Phase", "beginning");
 
+    this._nextStep("Untap step", "untap");
+    this.addGameActionGroup('Untap', this.zones.battlefield.map(function(card) {
+        return card.untap();
+    }));
+
+    this._nextStep("Draw step", "draw");
     var card = this.drawCard();
-    while(this.zones.library.length && -1 != ['Zombie', 'Zombie Giant'].indexOf(card.getName())) {
-        card = this.drawCard();
-    }
+
+    // game mode handler
+    this.gameMode.onDrawStep && this.gameMode.onDrawStep(this, {card: card});
 
     callback && callback();
 }
@@ -391,20 +479,27 @@ Player.prototype.addGameActionGroup = function(message, actions) {
 }
 
 Player.prototype.combatPhase = function(callback) {
+    this._nextPhase("Combat Phase", "combat");
+    this._nextStep("Declare Attackers", "attackers");
     var creatures = this.zones.battlefield.filter(function(card) {
         return card.isType('Creature');
     });
-    this.addGameActionGroup('Declare attackers step', creatures.map(function(card){
+    this.addGameActionGroup('Declaring attackers', creatures.map(function(card){
         return card.attack();
     }));
+
+    // TODO
+    //  - pass priority here...
+    this._nextStep("Declare Blockers", "blockers");
     callback && callback();
 }
 
 Player.prototype.endCombat = function(callback) {
+    this._nextStep("Combat damage", "combatdamage");
     var creatures = this.zones.battlefield.filter(function(card) {
         return card.isType('Creature');
     });
-    this.addGameActionGroup('End combat phase', creatures.map(function(card) {
+    this.addGameActionGroup('End combat', creatures.map(function(card) {
         return card.nocombat();
     }));
     callback && callback();
@@ -445,6 +540,9 @@ Player.prototype.untapSelected = function() {
 }
 
 Player.prototype.endingPhase = function(callback) {
+    this._nextPhase("Ending Phase", "endingphase");
+    this._nextStep("Clear Damage", "cleardamage");
+    this._nextStep("Cleanup", "cleanup");
     callback && callback();
 }
 
@@ -459,7 +557,7 @@ Player.prototype.drawCard = function() {
     return card;
 }
 
-Player.prototype.mainPhase = function(callback) {
+Player.prototype._mainPhase = function(callback) {
     var self = this;
     if (0 == self.zones.hand.length) {
         callback && callback();
