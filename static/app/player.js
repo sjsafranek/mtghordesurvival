@@ -439,12 +439,12 @@ Player.prototype.beginningPhase = function(callback) {
     //   - draw a card
     var self = this;
 
-    // TODO
-    // skip if needed
-    if (this.phase && "opponentsturn" != this.phase) {
-        callback && callback();
-        return;
-    }//.end
+    // // TODO
+    // // skip if needed
+    // if (this.phase && "opponentsturn" != this.phase) {
+    //     callback && callback();
+    //     return;
+    // }//.end
 
     this._nextPhase("Beginning Phase", "beginning");
 
