@@ -167,6 +167,10 @@ var Card = Backbone.Model.extend({
         return this.setDamage(0);
     },
 
+    getDamage: function() {
+        return this.get('__damage');
+    },
+
     getPower: function() {
         if (this.get('power')) {
             return parseInt(this.get('power'));
@@ -400,7 +404,6 @@ var CardView = Backbone.View.extend({
                     .text('change zone')
                     .on('click', function(){
                         $menu.remove();
-
                         Swal.fire(
                             GameUtils.selectZoneOptions({exclude: ['battlefield']})
                         ).then(function(result) {
@@ -414,21 +417,21 @@ var CardView = Backbone.View.extend({
                                 self.moveTo(null, {zone: zone});
                             }
                         });
-
                     }),
 
                 this.model.isType('creature') ?
                     $('<a>')
                         .addClass('dropdown-item')
-                        .text('assign damage')
+                        .text('set damage')
                         .on('click', function(){
                             $menu.remove();
                             Swal.fire({
-                                title: "Assign damage",
-                                input: "number"
+                                title: "Set damage",
+                                input: "number",
+                                inputValue: self.model.getDamage()
                             }).then(function(result) {
                                 if (result.value) {
-                                    var action = self.model.assignDamage(
+                                    var action = self.model.setDamage(
                                         parseInt(result.value)
                                     );
                                     player.addGameAction(action);
