@@ -19,8 +19,8 @@ var Player = function(options) {
 
     this.turn = {
         number: 0,
-        phase: null,
-        step: null
+        phase: "",
+        step: ""
     }
 
     this.currentGameAction = -1;
@@ -131,6 +131,7 @@ Player.prototype.addGameActionGroup = function(message, actions) {
 }
 
 Player.prototype.undo = function() {
+    this.pause();   // <- stop current game progression
     if (-1 == this.currentGameAction) {
         return;
     }
@@ -245,8 +246,7 @@ Player.prototype.addListeners = function() {
 
     // hot keys
     $(window).on('keydown', function(e) {
-        console.log(e);
-
+        // console.log(e);
 
         // ctrl+z
         if (e.ctrlKey && 90 == e.which) {
@@ -317,6 +317,8 @@ Player.prototype.updateCounts = function() {
 Player.prototype.takeTurn = function(callback) {
     var self = this;
 
+    $('#takeTurn').prop('disabled', true);
+
     this.addGameAction(
         new GameAction(
             "Turn - " + (this.number+1),
@@ -337,49 +339,134 @@ Player.prototype.takeTurn = function(callback) {
 }
 
 Player.prototype.pause = function() {
-    //
-    self._reject && self._reject("Pause game");
+    var self = this;
+    if (this._reject) {
+        this._reject("Pause game");
+        $('.continue').remove();
+        var $elem = $('<button>')
+            .addClass("btn btn-sm btn-success ml-2 continue")
+            .text('Continue')
+            .on('click', function(e) {
+                this.remove();
+                self.continue();
+            });
+        $('.controls').append($elem);
+    }
 }
 
 Player.prototype.continue = function(callback) {
     var self = this;
 
-    // var start = false;
-    // var promise = Promise.resolve();
+    var turnOrder = {
+        "": 0,
+        "beginning": 0,
+        "precombatmainphase": 1,
+        "combat": 2,
+        "postcombatmainphase": 3,
+        "endingphase": 4,
+        "opponentsturn": 0,
+    };
 
+    var n = turnOrder[this.turn.phase] || 0;
+
+    var turnProgression = [
+        function(){
+            return new Promise((resolve, reject) => {
+                self._reject = function(err){
+                    $('.priority').remove();
+                    reject(err);
+                };
+                self.beginningPhase(resolve);
+            });
+        },
+        function(){
+            return new Promise((resolve, reject) => {
+                self._reject = function(err){
+                    $('.priority').remove();
+                    reject(err);
+                };
+                self.precombatMainPhase(resolve);
+            });
+        },
+        function(){
+            return new Promise((resolve, reject) => {
+                self._reject = function(err){
+                    $('.priority').remove();
+                    reject(err);
+                };
+                self.combatPhase(resolve);
+            });
+        },
+        function() {
+            return new Promise((resolve, reject) => {
+                self._reject = function(err){
+                    $('.priority').remove();
+                    reject(err);
+                };
+                self.postcombatMainPhase(resolve);
+            });
+        },
+        function() {
+            return new Promise((resolve, reject) => {
+                self._reject = function(err){
+                    $('.priority').remove();
+                    reject(err);
+                };
+                self.endingPhase(resolve);
+            });
+        },
+        function(){
+            self._nextPhase("Opponents Turn", "opponentsturn");
+            $('#takeTurn').prop('disabled', false);
+            callback && callback();
+        }
+    ];
+
+    // build turn
+    var promise = Promise.resolve();
+    turnProgression.slice(n).reduce( (previousPromise, clbk) => {
+        return previousPromise.then(clbk);
+    }, promise);
+    promise.catch(function(err){
+        console.log(err);
+    });
+
+
+/*
     var promise = new Promise((resolve, reject) => {
         self._reject = reject;
         self.beginningPhase(resolve);
-    }).then(function(result) {
+    }).then(function() {
         return new Promise((resolve, reject) => {
             self._reject = reject;
             self.precombatMainPhase(resolve);
         });
-    }).then(function(result) {
+    }).then(function() {
         return new Promise((resolve, reject) => {
             self._reject = reject;
             self.combatPhase(resolve);
         });
-    }).then(function(result) {
+    }).then(function() {
         return new Promise((resolve, reject) => {
             self._reject = reject;
             self.postcombatMainPhase(resolve);
         });
-    }).then(function(result) {
+    }).then(function() {
         return new Promise((resolve, reject) => {
             self._reject = reject;
             self.endingPhase(resolve);
         });
-    }).then(function(result) {
+    }).then(function() {
         self._nextPhase("Opponents Turn", "opponentsturn");
         callback && callback();
     });
+*/
 
 }
 
 Player.prototype._passPriority = function(callback) {
     var $elem = $('<button>')
-        .addClass("btn btn-sm btn-success ml-2")
+        .addClass("btn btn-sm btn-success ml-2 priority")
         .text('Continue')
         .on('click', function(e) {
             this.remove();
@@ -390,8 +477,8 @@ Player.prototype._passPriority = function(callback) {
 
 Player.prototype._nextPhase = function(message, nextPhase) {
     var self = this;
-    var prevPhase = this.phase;
-    var prevStep = this.step;
+    var prevPhase = this.turn.phase;
+    var prevStep = this.turn.step;
     this.addGameAction(
         new GameAction(
             message,
@@ -415,7 +502,7 @@ Player.prototype._nextPhase = function(message, nextPhase) {
 
 Player.prototype._nextStep = function(message, nextStep) {
     var self = this;
-    var prevStep = this.step;
+    var prevStep = this.turn.step;
     this.addGameAction(
         new GameAction(
             message,

@@ -136,12 +136,35 @@ var Card = Backbone.Model.extend({
         this.set('__summoningSicknes', false);
     },
 
+    setDamage: function(newDamage) {
+        var self = this;
+        var oldDamage = this.get('__damage');
+        if (newDamage == oldDamage) {
+            return null;
+        }
+        return new GameAction(
+            this.getName() + " has " + newDamage + " points of damage",
+            function(callback) {
+                self.set('__damage', newDamage);
+                callback && callback();
+            },
+            function(callback) {
+                self.set('__damage', oldDamage);
+                callback && callback();
+            }
+        );
+    },
+
     assignDamage: function(damage) {
-        this.set('__damage', this.get('__damage') + damage);
+        var self = this;
+        return this.setDamage(
+            this.get('__damage') + damage
+        );
     },
 
     clearDamage: function() {
-        this.set('__damage', 0);
+        var self = this;
+        return this.setDamage(0);
     },
 
     getPower: function() {
@@ -392,7 +415,27 @@ var CardView = Backbone.View.extend({
                             }
                         });
 
-                    })
+                    }),
+
+                this.model.isType('creature') ?
+                    $('<a>')
+                        .addClass('dropdown-item')
+                        .text('assign damage')
+                        .on('click', function(){
+                            $menu.remove();
+                            Swal.fire({
+                                title: "Assign damage",
+                                input: "number"
+                            }).then(function(result) {
+                                if (result.value) {
+                                    var action = self.model.assignDamage(
+                                        parseInt(result.value)
+                                    );
+                                    player.addGameAction(action);
+                                }
+                            });
+                        }) : ""
+
             ).css({
                 display: "block",
                 top: top,

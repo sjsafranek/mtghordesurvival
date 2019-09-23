@@ -23,6 +23,8 @@ var Zone = Backbone.Collection.extend({
         return this.name;
     },
     shuffle: function(){
+        // TODO
+        //  - add game action to store sorting!!
         var self = this;
         this._order = [];
         this.each(function(card) {
