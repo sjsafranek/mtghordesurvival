@@ -39,6 +39,7 @@ d3.csvParse(data, function(d) {
         }
         for (var i=0; i<parseInt(d.count); i++) {
             player.zones.library.create(card);
+            player.zones.library.shuffle();
         }
         player.updateCounts();
     });

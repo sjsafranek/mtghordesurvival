@@ -41,11 +41,9 @@ var Player = function(options) {
     for (var zone in this.zones) {
         this.zones[zone].on('add', function(card){
             self.updateCounts();
-            // this._order = [];
         });
         this.zones[zone].on('remove', function(card){
             self.updateCounts();
-            // this._order = [];
         });
     }
 
@@ -96,17 +94,40 @@ var Player = function(options) {
     this.addListeners();
 }
 
-Player.prototype.addGameAction = function(gameAction) {
-    if (!gameAction) return;
+Player.prototype.addGameAction = function(action) {
+    if (!action) return;
     if (this.currentGameAction != this.gameActions.length - 1) {
         console.log('TODO: remove any following game actions');
         this.gameActions && this.gameActions.slice(0, this.currentGameAction - 1);
         debugger;
     }
-    gameAction.do();
-    toast(gameAction.message);
-    this.gameActions.push(gameAction);
+    action.do();
+    toast(action.message);
+    this.gameActions.push(action);
     this.currentGameAction = this.gameActions.length - 1;
+}
+
+Player.prototype.addGameActionGroup = function(message, actions) {
+    // filter out null actions
+    actions = actions.filter(function(action) { return action; });
+    // build game action
+    this.addGameAction(
+        new GameAction(
+            message,
+            function(callback) {
+                for (var i=0; i<actions.length; i++) {
+                    actions[i].do();
+                }
+                callback && callback();
+            },
+            function(callback) {
+                for (var i=0; i<actions.length; i++) {
+                    actions[i].undo();
+                }
+                callback && callback();
+            }
+        )
+    );
 }
 
 Player.prototype.undo = function() {
@@ -295,23 +316,6 @@ Player.prototype.updateCounts = function() {
 
 Player.prototype.takeTurn = function(callback) {
     var self = this;
-    // beginningPhase
-    //   - untap lands and creatures
-    //   - draw a card
-    // precombatMainPhase
-    //   - play a land
-    //   - cast creatures & spells
-    // combatPhase
-    //   - declare attackers
-    //   - declare blockers
-    //   - combat damage
-    //  postcombatMainPhase
-    //   - play a land
-    //   - cast creatures & spells
-    // endingPhase
-    //   - remove damage
-    //   - pass the turn to opponent
-
 
     this.addGameAction(
         new GameAction(
@@ -329,59 +333,51 @@ Player.prototype.takeTurn = function(callback) {
         )
     );
 
+    this.continue(callback);
+}
+
+Player.prototype.pause = function() {
+    //
+    self._reject && self._reject("Pause game");
+}
+
+Player.prototype.continue = function(callback) {
+    var self = this;
+
+    // var start = false;
+    // var promise = Promise.resolve();
 
     var promise = new Promise((resolve, reject) => {
-        self.beginningPhase(function() {
-            self.passPriority(resolve);
+        self._reject = reject;
+        self.beginningPhase(resolve);
+    }).then(function(result) {
+        return new Promise((resolve, reject) => {
+            self._reject = reject;
+            self.precombatMainPhase(resolve);
         });
     }).then(function(result) {
         return new Promise((resolve, reject) => {
-            self.precombatMainPhase(function() {
-                self.passPriority(resolve);
-            });
+            self._reject = reject;
+            self.combatPhase(resolve);
         });
     }).then(function(result) {
         return new Promise((resolve, reject) => {
-            self.combatPhase(function() {
-                self.passPriority(function(){
-                    // pass priority again....
-                    self.endCombat(resolve);
-                });
-            });
+            self._reject = reject;
+            self.postcombatMainPhase(resolve);
         });
     }).then(function(result) {
         return new Promise((resolve, reject) => {
-            self.postcombatMainPhase(function() {
-                self.passPriority(resolve);
-            });
+            self._reject = reject;
+            self.endingPhase(resolve);
         });
     }).then(function(result) {
-        return new Promise((resolve, reject) => {
-            self.endingPhase(function() {
-                self.passPriority(resolve);
-            });
-        });
-    }).then(function(result) {
-        return new Promise((resolve, reject) => {
-            toast('Passing the turn');
-            self.passPriority(resolve);
-        });
-    }).then(function(result) {
+        self._nextPhase("Opponents Turn", "opponentsturn");
         callback && callback();
     });
+
 }
 
-Player.prototype.precombatMainPhase = function(callback){
-    this._nextPhase("Precombat Main Phase", "precombatmainphase");
-    this._mainPhase(callback);
-}
-
-Player.prototype.postcombatMainPhase = function(callback){
-    this._nextPhase("Postcombat Main Phase", "postcombatmainphase");
-    this._mainPhase(callback);
-}
-
-Player.prototype.passPriority = function(callback) {
+Player.prototype._passPriority = function(callback) {
     var $elem = $('<button>')
         .addClass("btn btn-sm btn-success ml-2")
         .text('Continue')
@@ -438,7 +434,17 @@ Player.prototype._nextStep = function(message, nextStep) {
 }
 
 Player.prototype.beginningPhase = function(callback) {
+    // beginningPhase
+    //   - untap lands and creatures
+    //   - draw a card
     var self = this;
+
+    // TODO
+    // skip if needed
+    if (this.phase && "opponentsturn" != this.phase) {
+        callback && callback();
+        return;
+    }//.end
 
     this._nextPhase("Beginning Phase", "beginning");
 
@@ -453,33 +459,51 @@ Player.prototype.beginningPhase = function(callback) {
     // game mode handler
     this.gameMode.onDrawStep && this.gameMode.onDrawStep(this, {card: card});
 
-    callback && callback();
+    this._passPriority(callback);
 }
 
+Player.prototype.precombatMainPhase = function(callback){
+    // precombatMainPhase
+    //   - play a land
+    //   - cast creatures & spells
+    this._nextPhase("Precombat Main Phase", "precombatmainphase");
+    this._mainPhase(callback);
+}
 
-Player.prototype.addGameActionGroup = function(message, actions) {
-    actions = actions.filter(function(action) { return action; });
-    this.addGameAction(
-        new GameAction(
-            message,
-            function(callback) {
-                for (var i=0; i<actions.length; i++) {
-                    actions[i].do();
-                }
-                callback && callback();
-            },
-            function(callback) {
-                for (var i=0; i<actions.length; i++) {
-                    actions[i].undo();
-                }
-                callback && callback();
-            }
-        )
-    );
+Player.prototype._mainPhase = function(callback) {
+    var self = this;
+    if (0 == self.zones.hand.length) {
+        callback && callback();
+        return;
+    }
+
+    // Cast all spells from hand
+    // This must be done sequentially but use Promises for SweetAlert2
+    // https://css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
+    this.zones.hand.reduce( (previousPromise, nextCard) => {
+        return previousPromise.then(() => {
+            return new Promise((resolve, reject) => {
+                return self.castSpell(nextCard, function(){
+                    resolve();
+                    // continue when no cards are left to cast
+                    if (0 == self.zones.hand.length) {
+                        // callback && callback();
+                        self._passPriority(callback);
+                    }
+                });
+            });
+        });
+    }, Promise.resolve());
 }
 
 Player.prototype.combatPhase = function(callback) {
+    // combatPhase
+    //   - declare attackers
+    //   - declare blockers
+    //   - combat damage
+    var self = this;
     this._nextPhase("Combat Phase", "combat");
+
     this._nextStep("Declare Attackers", "attackers");
     var creatures = this.zones.battlefield.filter(function(card) {
         return card.isType('Creature');
@@ -488,21 +512,42 @@ Player.prototype.combatPhase = function(callback) {
         return card.attack();
     }));
 
-    // TODO
-    //  - pass priority here...
-    this._nextStep("Declare Blockers", "blockers");
-    callback && callback();
+    this._passPriority(function(){
+        self._nextStep("Declare Blockers", "blockers");
+        self._passPriority(function(){
+
+            self._nextStep("Combat damage", "combatdamage");
+            var creatures = self.zones.battlefield.filter(function(card) {
+                return card.isType('Creature');
+            });
+            self.addGameActionGroup('End combat', creatures.map(function(card) {
+                return card.nocombat();
+            }));
+
+            self._passPriority(callback);
+        });
+    });
+
 }
 
-Player.prototype.endCombat = function(callback) {
-    this._nextStep("Combat damage", "combatdamage");
-    var creatures = this.zones.battlefield.filter(function(card) {
-        return card.isType('Creature');
-    });
-    this.addGameActionGroup('End combat', creatures.map(function(card) {
-        return card.nocombat();
-    }));
-    callback && callback();
+Player.prototype.postcombatMainPhase = function(callback){
+    //  postcombatMainPhase
+    //   - play a land
+    //   - cast creatures & spells
+    this._nextPhase("Postcombat Main Phase", "postcombatmainphase");
+    this._mainPhase(callback);
+}
+
+Player.prototype.endingPhase = function(callback) {
+    // endingPhase
+    //   - remove damage
+    //   - pass the turn to opponent
+    this._nextPhase("Ending Phase", "endingphase");
+    this._nextStep("Clear Damage", "cleardamage");
+    // TODO clear damage from creatures
+    this._nextStep("Cleanup", "cleanup");
+    // TODO: discard to hand limit
+    this._passPriority(callback);
 }
 
 Player.prototype.boardWipe = function(zone, cardType) {
@@ -539,47 +584,15 @@ Player.prototype.untapSelected = function() {
     }));
 }
 
-Player.prototype.endingPhase = function(callback) {
-    this._nextPhase("Ending Phase", "endingphase");
-    this._nextStep("Clear Damage", "cleardamage");
-    this._nextStep("Cleanup", "cleanup");
-    callback && callback();
-}
-
 Player.prototype.drawCard = function() {
     if (!this.zones.library.length) {
         toast('No cards in library!');
         return;
     }
-    toast('Draw card');
-    var card = this.zones.library.chooseRandom();
-    card.moveTo(this.zones.hand)
+    // toast('Draw card');
+    var card = this.zones.library.draw(this.zones.hand);
+    // card.moveTo(this.zones.hand);
     return card;
-}
-
-Player.prototype._mainPhase = function(callback) {
-    var self = this;
-    if (0 == self.zones.hand.length) {
-        callback && callback();
-        return;
-    }
-
-    // Cast all spells from hand
-    // This must be done sequentially but use Promises for SweetAlert2
-    // https://css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
-    this.zones.hand.reduce( (previousPromise, nextCard) => {
-        return previousPromise.then(() => {
-            return new Promise((resolve, reject) => {
-                return self.castSpell(nextCard, function(){
-                    resolve();
-                    // continue when no cards are left to cast
-                    if (0 == self.zones.hand.length) {
-                        callback && callback();
-                    }
-                });
-            });
-        });
-    }, Promise.resolve());
 }
 
 Player.prototype.getCardsByName = function(cardName, zone) {
@@ -599,6 +612,8 @@ Player.prototype.getCardsByType = function(cardType, zone) {
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
     toast('Cast ' + card.getName());
+    // card.moveTo(this.zones.stack);
+
     return Swal.fire({
         title: card.getName(),
         imageUrl: card.getImage(),
