@@ -2,6 +2,8 @@
 var Player = function(options) {
     var self = this;
 
+    options = options || {};
+    this.handLimit = options.handLimit || 7;
     this.gameMode = options;
 
     // HACK
@@ -248,6 +250,12 @@ Player.prototype.addListeners = function() {
     $(window).on('keydown', function(e) {
         // console.log(e);
 
+        // ctrl+d
+        if (e.ctrlKey && 68 == e.which) {
+            e.preventDefault();
+            self.drawCard();
+        }
+
         // ctrl+z
         if (e.ctrlKey && 90 == e.which) {
             e.preventDefault();
@@ -260,10 +268,9 @@ Player.prototype.addListeners = function() {
             self.redo();
         }
 
-        // ctrl+A
+        // ctrl+a
         if (e.ctrlKey && 65 == e.which) {
             e.preventDefault();
-            // select all
             player.zones.battlefield.each(function(card) {
                 card.select();
             });
@@ -310,6 +317,28 @@ Player.prototype.addListeners = function() {
         if (e.altKey && 83 == e.which) {
             e.preventDefault();
             self.addGameAction(self.zones.library.shuffle());
+        }
+
+        // alt+'+'
+        if (e.altKey && 187 == e.which) {
+            // deal damage
+            var cards = self.zones.battlefield.filter(function(card) {
+                return card.isSelected() && card.isType('creature');
+            });
+            self.addGameActionGroup('Deal 1 damage', cards.map(function(card){
+                return card.assignDamage(1);
+            }));
+        }
+
+        // alt+'-'
+        if (e.altKey && 189 == e.which) {
+            // heal damage
+            var cards = self.zones.battlefield.filter(function(card) {
+                return card.isSelected() && 0 != card.getDamage() && card.isType('creature');
+            });
+            self.addGameActionGroup('Heal 1 damage', cards.map(function(card){
+                return card.assignDamage(-1);
+            }));
         }
     });
 
@@ -647,9 +676,27 @@ Player.prototype.endingPhase = function(callback) {
     //   - remove damage
     //   - pass the turn to opponent
     this._nextPhase("Ending Phase", "endingphase");
+
     this._nextStep("Clear Damage", "cleardamage");
-    // TODO clear damage from creatures
+    var cards = this.zones.battlefield.filter(function(card) {
+        return card.isSelected() && 0 != card.getDamage() && card.isType('creature');
+    });
+    this.addGameActionGroup('Clear damage', cards.map(function(card){
+        return card.clearDamage();
+    }));
+
     this._nextStep("Cleanup", "cleanup");
+    var actions = []
+    var i=0;
+    for (var i=this.zones.hand.length-1; i != this.handLimit-1; i--) {
+        // this.zones.hand.models[0].moveTo;
+        var card = this.zones.hand.models[i];
+        card.moveTo(this.zones.graveyard, function(action) {
+            actions.push(action);
+        });
+    }
+    this.addGameActionGroup('Discard to hand limit', actions);
+
     // TODO: discard to hand limit
     this._passPriority(callback);
 }
@@ -693,10 +740,19 @@ Player.prototype.drawCard = function() {
         toast('No cards in library!');
         return;
     }
-    // toast('Draw card');
     var card = this.zones.library.draw(this.zones.hand);
-    // card.moveTo(this.zones.hand);
     return card;
+}
+
+Player.prototype.drawCards = function(n) {
+    var self = this;
+    var actions = [];
+    for (var i=0; i<n; i++) {
+        this.zones.library.draw(this.zones.hand, function(action) {
+            actions.push(action);
+        });
+    }
+    this.addGameActionGroup('Draw ' + n + ' cards', actions);
 }
 
 Player.prototype.getCardsByName = function(cardName, zone) {

@@ -95,14 +95,14 @@ var Zone = Backbone.Collection.extend({
         );
     },
 
-    draw: function(zone){
+    draw: function(zone, callback){
         if (0 == this.length) return null;
         var card;
         while (!card) {
             var cid = this._order.shift();
             card = this.get(cid);
         }
-        zone && card.moveTo(zone);
+        zone && card.moveTo(zone, callback);
         return card;
     }
 });

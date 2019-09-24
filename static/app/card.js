@@ -20,7 +20,7 @@ var Card = Backbone.Model.extend({
         this.set('__damage', 0);
         this.set('__controller', undefined);
         this.set('__owner', undefined);
-        this.set('__summoningSickness', false);
+        this.set('__summoningSickness', true);
         this.set('__selected', false);
     },
 
@@ -329,7 +329,7 @@ var CardView = Backbone.View.extend({
         }
 
         // damage
-        if (undefined != changed.__damage) {
+        if (undefined != changed.__damage && this.model.isType('creature')) {
             changed.__damage >= this.model.getToughness() ?
                 this.$el.addClass('leathal-damage') : this.$el.removeClass('leathal-damage');
         }
@@ -376,10 +376,24 @@ var CardView = Backbone.View.extend({
         this.model.toggleSelect();
     },
 
-    moveToTopLibary: function(){
+    putIntoLibaryTop: function(){
+        var library = player.zones.library;
+        player.addGameAction(library.addTop(self.model));
     },
 
-    moveToBottomLibary: function(){
+    putIntoLibraryBottom: function(){
+        var library = player.zones.library;
+        player.addGameAction(library.addBottom(self.model));
+    },
+
+    putIntoLibraryShuffle: function(){
+        var library = player.zones.library;
+        self.model.moveTo(library, function(action) {
+            player.addGameActionGroup(
+                "Shuffle "+self.model.getName()+" into library",
+                [action, library.shuffle()]
+            );
+        });
     },
 
     contextMenu: function(e) {
@@ -393,6 +407,7 @@ var CardView = Backbone.View.extend({
         $menu = $('<div>')
             .addClass('dropdown-menu dropdown-menu-sm mtgcard-menu')
             .append(
+
                 !self.model.isTapped() ?
                     $('<a>')
                         .addClass('dropdown-item')
@@ -403,36 +418,11 @@ var CardView = Backbone.View.extend({
                         }) :
                     $('<a>')
                         .addClass('dropdown-item')
-                        .text('untap')
+                        .text('Untap')
                         .on('click', function(){
                             $menu.remove();
                             self.untap()
                         }),
-                // $('<a>')
-                //     .addClass('dropdown-item')
-                //     .text('add counter')
-                //     .on('click', function(){
-                //         $menu.remove();
-                //
-                //         self.counters['+1/+1']++;
-                //         self.counters['-1/-1']++;
-                //
-                //         self.$el
-                //             .find('.plus-one-plus-one-counter')
-                //             .text(
-                //                 self.counters['+1/+1']
-                //             )
-                //             .show();
-                //
-                //         self.$el
-                //             .find('.minus-one-minus-one-counter')
-                //             .text(
-                //                 self.counters['-1/-1']
-                //             )
-                //             .show();
-                //
-                //         debugger;
-                //     }),
 
                 self.model.isAttacking() ?
                     $('<a>')
@@ -461,7 +451,7 @@ var CardView = Backbone.View.extend({
 
                 $('<a>')
                     .addClass('dropdown-item')
-                    .text('Hand')
+                    .text('Return to Hand')
                     .on('click', function(){
                         $menu.remove();
                         self.moveTo(null, {zone: 'hand'});
@@ -469,34 +459,26 @@ var CardView = Backbone.View.extend({
 
                 $('<a>')
                     .addClass('dropdown-item')
-                    .text('Library (Shuffle)')
+                    .text('Return to Library (Shuffle)')
                     .on('click', function(){
                         $menu.remove();
-                        var library = player.zones.library;
-                        self.model.moveTo(library, function(action) {
-                            player.addGameActionGroup(
-                                "Shuffle "+self.model.getName()+" into library",
-                                [action, library.shuffle()]
-                            );
-                        });
+                        self.putIntoLibraryShuffle();
                     }),
 
                 $('<a>')
                     .addClass('dropdown-item')
-                    .text('Library Top')
+                    .text('Put on the top of Library')
                     .on('click', function(){
                         $menu.remove();
-                        var library = player.zones.library;
-                        player.addGameAction(library.addTop(self.model));
+                        self.putIntoLibaryTop();
                 }),
 
                 $('<a>')
                     .addClass('dropdown-item')
-                    .text('Library Bottom')
+                    .text('Put at the bottom of Library')
                     .on('click', function(){
                         $menu.remove();
-                        var library = player.zones.library;
-                        player.addGameAction(library.addBottom(self.model));
+                        self.putIntoLibraryBottom();
                 }),
 
                 this.model.isType('creature') ?
