@@ -273,7 +273,6 @@ Player.prototype.addListeners = function() {
         // alt+g
         if (e.altKey && 71 == e.which) {
             e.preventDefault();
-            // boardwipe selected
             self.boardWipe(self.zones.graveyard);
         }
 
@@ -281,6 +280,18 @@ Player.prototype.addListeners = function() {
         if (e.altKey && 69 == e.which) {
             e.preventDefault();
             self.boardWipe(self.zones.exile);
+        }
+
+        // alt+l
+        if (e.altKey && 76 == e.which) {
+            e.preventDefault();
+            self.boardWipe(self.zones.library);
+        }
+
+        // alt+h
+        if (e.altKey && 72 == e.which) {
+            e.preventDefault();
+            self.boardWipe(self.zones.hand);
         }
 
         // alt+t
@@ -293,6 +304,12 @@ Player.prototype.addListeners = function() {
         if (e.altKey && 85 == e.which) {
             e.preventDefault();
             self.untapSelected();
+        }
+
+        // alt+s
+        if (e.altKey && 83 == e.which) {
+            e.preventDefault();
+            self.addGameAction(self.zones.library.shuffle());
         }
     });
 

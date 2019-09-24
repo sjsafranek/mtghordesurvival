@@ -22,16 +22,31 @@ var Zone = Backbone.Collection.extend({
     getName: function() {
         return this.name;
     },
+
     shuffle: function(){
-        // TODO
-        //  - add game action to store sorting!!
         var self = this;
+
+        var oldOrder = this._order;
         this._order = [];
         this.each(function(card) {
             self._order.push(card.cid);
             self._order = d3.shuffle(self._order);
         });
+        var newOrder = this._order;
+
+        return new GameAction(
+            "Shuffle " + this.getName(),
+            function(callback) {
+                self._order = newOrder;
+                callback && callback();
+            },
+            function(callback) {
+                self._order = oldOrder;
+                callback && callback();
+            }
+        );
     },
+    
     addTop: function(card){
         this.add(card);
         this._order.unshift(card.cid);

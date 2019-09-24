@@ -363,6 +363,10 @@ var CardView = Backbone.View.extend({
         player.addGameAction(this.model.untap());
     },
 
+    nocombat: function(event) {
+        player.addGameAction(this.model.nocombat());
+    },
+
     selectCard: function(event){
         event.preventDefault();
         $(".mtgcard-menu").removeClass("show").hide();  // remove contextMenu
@@ -383,7 +387,7 @@ var CardView = Backbone.View.extend({
         $menu = $('<div>')
             .addClass('dropdown-menu dropdown-menu-sm mtgcard-menu')
             .append(
-                !self.$el.hasClass('tapped') ?
+                !self.model.isTapped() ?
                     $('<a>')
                         .addClass('dropdown-item')
                         .text('tap')
@@ -423,25 +427,36 @@ var CardView = Backbone.View.extend({
                 //
                 //         debugger;
                 //     }),
+
+                self.model.isAttacking() ?
+                    $('<a>')
+                        .addClass('dropdown-item')
+                        .text('Remove from combat')
+                        .on('click', function(){
+                            $menu.remove();
+                            self.nocombat();
+                        }) : "",
+
                 $('<a>')
                     .addClass('dropdown-item')
-                    .text('change zone')
+                    .text('Destroy')
                     .on('click', function(){
                         $menu.remove();
-                        Swal.fire(
-                            GameUtils.selectZoneOptions({exclude: ['battlefield']})
-                        ).then(function(result) {
-                            var zone = result.value;
-                            if (zone) {
-                                var $elems = $('.mtgcard.selected');
-                                if ($elems.length) {
-                                    $elems.trigger('moveTo', {zone: zone});
-                                    return;
-                                }
-                                self.moveTo(null, {zone: zone});
-                            }
-                        });
+                        self.moveTo(null, {zone: 'graveyard'});
                     }),
+
+                $('<a>')
+                    .addClass('dropdown-item')
+                    .text('Exile')
+                    .on('click', function(){
+                        $menu.remove();
+                        self.moveTo(null, {zone: 'exile'});
+                    }),
+
+
+                // to library
+                // to hand
+
 
                 this.model.isType('creature') ?
                     $('<a>')
