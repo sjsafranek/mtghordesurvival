@@ -714,7 +714,7 @@ Player.prototype.castSpell = function(card, callback) {
             Swal.fire(
                 GameUtils.selectZoneOptions({exclude:['battlefield']})
             ).then(function(result) {
-                card.moveTo(zone);
+                result.value && card.moveTo(self.zones[result.value]);
                 callback && callback();
             });
             return;

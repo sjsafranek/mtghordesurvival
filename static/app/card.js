@@ -4,7 +4,8 @@ var Card = Backbone.Model.extend({
     // Backbone will use this attribute to make models singletons.
     idAttribute: "_id",
     defaults: {
-
+        power: null,
+        toughness: null
     },
 
     initialize: function(){
@@ -278,7 +279,8 @@ var CardView = Backbone.View.extend({
                 __tapped: this.model.isTapped(),
                 __attacking: this.model.isAttacking(),
                 __blocking: this.model.isBlocking(),
-                __selected: this.model.isSelected()
+                __selected: this.model.isSelected(),
+                __damage: this.model.getDamage()
             }
         });
 
@@ -291,29 +293,51 @@ var CardView = Backbone.View.extend({
         'moveTo': 'moveTo',
         'tap': 'tap',
         'untap': 'untap',
-        'destroy': 'destroy'
+        'destroy': 'destroy',
+        'mouseover': 'mouseover'
     },
 
     onChange: function(event) {
         var self = this;
         var changed = event.changed;
-        undefined != changed.__tapped &&  changed.__tapped && this.$el.addClass('tapped');
-        undefined != changed.__tapped && !changed.__tapped && this.$el.removeClass('tapped');
 
+        // tapped
+        if (undefined != changed.__tapped) {
+            changed.__tapped ?
+                this.$el.addClass('tapped') : this.$el.removeClass('tapped');
+        }
+
+        // combat
         // allow for tap animation to complete
         undefined != changed.__attacking && changed.__attacking && this.$el.addClass('attacking');
         undefined != changed.__attacking && changed.__attacking && setTimeout(function(){
+            console.log(self);
             $('.combatZone').append(self.$el);
         },300);
 
+        // remove from combat
         var nocombat = function() {
            $('.creatures').append(self.$el);
            self.$el.removeClass('attacking');
        }
         undefined != changed.__attacking && !changed.__attacking && nocombat();
 
-        undefined != changed.__selected &&  changed.__selected && this.$el.addClass('selected');
-        undefined != changed.__selected && !changed.__selected && this.$el.removeClass('selected');
+        // selected
+        if (undefined != changed.__selected) {
+            changed.__selected ?
+                this.$el.addClass('selected') : this.$el.removeClass('selected');
+        }
+
+        // damage
+        if (undefined != changed.__damage) {
+            changed.__damage >= this.model.getToughness() ?
+                this.$el.addClass('leathal-damage') : this.$el.removeClass('leathal-damage');
+        }
+    },
+
+    mouseover: function(event) {
+        // console.log(this.model.getText());
+        // console.log(this.model.getPower(), this.model.getToughness());
     },
 
     destroy: function(event, args) {

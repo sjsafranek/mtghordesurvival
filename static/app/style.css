@@ -19,6 +19,34 @@
     position: absolute;
 }
 
+.mtgcard .card-text-container {
+    position: absolute;
+    z-index: 9;
+    background-color: rgba(256, 256, 256, 0.6);
+    font-size: 11px;
+    height: 100%;
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.mtgcard.leathal-damage .card-text-container {
+    background-color: rgba(256, 0, 0, 0.6);
+}
+
+.mtgcard .stats-container {
+    position: absolute;
+    z-index: 10;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    -webkit-text-fill-color: white; /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 0.75px;
+    -webkit-text-stroke-color: black;
+    right: 4px;
+    bottom: 0;
+}
+
 .mtgcard .counter-symbol {
     display: none;
 }
