@@ -376,6 +376,12 @@ var CardView = Backbone.View.extend({
         this.model.toggleSelect();
     },
 
+    moveToTopLibary: function(){
+    },
+
+    moveToBottomLibary: function(){
+    },
+
     contextMenu: function(e) {
         var self = this;
         e.preventDefault();
@@ -390,7 +396,7 @@ var CardView = Backbone.View.extend({
                 !self.model.isTapped() ?
                     $('<a>')
                         .addClass('dropdown-item')
-                        .text('tap')
+                        .text('Tap')
                         .on('click', function(){
                             $menu.remove();
                             self.tap()
@@ -453,15 +459,50 @@ var CardView = Backbone.View.extend({
                         self.moveTo(null, {zone: 'exile'});
                     }),
 
+                $('<a>')
+                    .addClass('dropdown-item')
+                    .text('Hand')
+                    .on('click', function(){
+                        $menu.remove();
+                        self.moveTo(null, {zone: 'hand'});
+                    }),
 
-                // to library
-                // to hand
+                $('<a>')
+                    .addClass('dropdown-item')
+                    .text('Library (Shuffle)')
+                    .on('click', function(){
+                        $menu.remove();
+                        var library = player.zones.library;
+                        self.model.moveTo(library, function(action) {
+                            player.addGameActionGroup(
+                                "Shuffle "+self.model.getName()+" into library",
+                                [action, library.shuffle()]
+                            );
+                        });
+                    }),
 
+                $('<a>')
+                    .addClass('dropdown-item')
+                    .text('Library Top')
+                    .on('click', function(){
+                        $menu.remove();
+                        var library = player.zones.library;
+                        player.addGameAction(library.addTop(self.model));
+                }),
+
+                $('<a>')
+                    .addClass('dropdown-item')
+                    .text('Library Bottom')
+                    .on('click', function(){
+                        $menu.remove();
+                        var library = player.zones.library;
+                        player.addGameAction(library.addBottom(self.model));
+                }),
 
                 this.model.isType('creature') ?
                     $('<a>')
                         .addClass('dropdown-item')
-                        .text('set damage')
+                        .text('Damage')
                         .on('click', function(){
                             $menu.remove();
                             Swal.fire({

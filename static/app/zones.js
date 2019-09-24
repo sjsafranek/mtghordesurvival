@@ -3,10 +3,12 @@
 var Zone = Backbone.Collection.extend({
     model: Card,
     localStorage: new Store("mtghordesurvival"),
+
     initialize: function(){
         this.name = null;
         this._order = [];
     },
+
     chooseRandom: function() {
         var idx = Math.round(Math.random() * this.length);
         if (!this.models[idx]) {
@@ -15,10 +17,12 @@ var Zone = Backbone.Collection.extend({
         }
         return this.models[idx];
     },
+
     setName: function(name) {
         this.name = name;
         return this;
     },
+
     getName: function() {
         return this.name;
     },
@@ -46,15 +50,51 @@ var Zone = Backbone.Collection.extend({
             }
         );
     },
-    
+
     addTop: function(card){
-        this.add(card);
-        this._order.unshift(card.cid);
+        var self = this;
+        var oldOrder = this._order;
+        var moveToAction;
+        card.moveTo(this, function(action) {
+            moveToAction = action;
+        });
+        return new GameAction(
+            "Add " + card.getName() + " to top of " + this.getName(),
+            function(callback) {
+                moveToAction.do();
+                self._order.unshift(card.cid);
+                callback && callback();
+            },
+            function(callback) {
+                moveToAction.undo();
+                self._order = oldOrder;
+                callback && callback();
+            }
+        );
     },
+
     addBottom: function(card){
-        this.add(card);
-        this._order.push(card.cid);
+        var self = this;
+        var oldOrder = this._order;
+        var moveToAction;
+        card.moveTo(this, function(action) {
+            moveToAction = action;
+        });
+        return new GameAction(
+            "Add " + card.getName() + " to bottom of " + this.getName(),
+            function(callback) {
+                moveToAction.do();
+                self._order.push(card.cid);
+                callback && callback();
+            },
+            function(callback) {
+                moveToAction.undo();
+                self._order = oldOrder;
+                callback && callback();
+            }
+        );
     },
+
     draw: function(zone){
         if (0 == this.length) return null;
         var card;
