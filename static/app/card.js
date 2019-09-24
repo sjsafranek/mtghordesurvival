@@ -86,14 +86,22 @@ var Card = Backbone.Model.extend({
     },
 
     _attack: function(callback) {
-        this.set('__tapped', true);
-        this.set('__attacking', true);
+        this.set({
+            '__tapped': true,
+            '__attacking': true
+        });
+        // this.set('__tapped', true);
+        // this.set('__attacking', true);
         callback && callback();
     },
 
     _nocombat: function(callback) {
-        this.set('__attacking', false);
-        this.set('__blocking', false);
+        this.set({
+            '__attacking': false,
+            '__blocking': false
+        });
+        // this.set('__attacking', false);
+        // this.set('__blocking', false);
         callback && callback();
     },
 

@@ -686,16 +686,17 @@ Player.prototype.endingPhase = function(callback) {
     }));
 
     this._nextStep("Cleanup", "cleanup");
-    var actions = []
-    var i=0;
-    for (var i=this.zones.hand.length-1; i != this.handLimit-1; i--) {
-        // this.zones.hand.models[0].moveTo;
-        var card = this.zones.hand.models[i];
-        card.moveTo(this.zones.graveyard, function(action) {
-            actions.push(action);
-        });
+    if (this.zones.hand.length) {
+        var actions = []
+        var i=0;
+        for (var i=this.zones.hand.length-1; i != this.handLimit-1; i--) {
+            var card = this.zones.hand.models[i];
+            card.moveTo(this.zones.graveyard, function(action) {
+                actions.push(action);
+            });
+        }
+        this.addGameActionGroup('Discard to hand limit', actions);
     }
-    this.addGameActionGroup('Discard to hand limit', actions);
 
     // TODO: discard to hand limit
     this._passPriority(callback);
