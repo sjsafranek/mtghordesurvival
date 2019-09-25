@@ -36,7 +36,7 @@ body {
     position: absolute;
 }
 
-.mtgcard .card-text-container {
+/*.mtgcard .card-text-container {
     position: absolute;
     z-index: 9;
     background-color: rgba(256, 256, 256, 0.6);
@@ -45,7 +45,22 @@ body {
     width: 100%;
     padding: 8px;
     border-radius: 4px;
+}*/
+
+.mtgcard .card-count-container {
+    position: absolute;
+    z-index: 9;
+    color: white;
+    font-weight: bold;
+    font-size: 32px;
+    -webkit-text-fill-color: white; /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 0.75px;
+    -webkit-text-stroke-color: black;
+    /*right: 12px;*/
+    /*bottom: 12px;*/
+    vertical-align: middle;
 }
+
 
 .mtgcard.leathal-damage .card-text-container {
     background-color: rgba(256, 0, 0, 0.6);

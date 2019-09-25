@@ -14,7 +14,7 @@ var Card = Backbone.Model.extend({
 
     resetState: function() {
         this.set({
-            '__counters': {},
+            // '__counters': {},
             '__tapped': false,
             '__attacking': false,
             '__blocking': false,
@@ -27,21 +27,25 @@ var Card = Backbone.Model.extend({
         });
     },
 
+    getState: function() {
+        return [
+            this.getName(),
+            // this.get('__counters'),
+            this.get('__tapped'),
+            this.get('__attacking'),
+            this.get('__blocking'),
+            this.get('__damage'),
+            this.get('__controller'),
+            this.get('__owner'),
+            this.get('__summoningSickness'),
+            this.get('__selected'),
+            this.get('__grouped')
+        ]
+    },
+
     md5: function() {
         return md5(
-            JSON.stringify({
-                'name': this.getName(),
-                '__counters': this.get('__counters'),
-                '__tapped': this.get('__tapped'),
-                '__attacking': this.get('__attacking'),
-                '__blocking': this.get('__blocking'),
-                '__damage': this.get('__damage'),
-                '__controller': this.get('__controller'),
-                '__owner': this.get('__owner'),
-                '__summoningSickness': this.get('__summoningSickness'),
-                '__selected': this.get('__selected'),
-                '__grouped': this.get('__grouped')
-            })
+            this.getState().join("|")
         );
     },
 
@@ -520,7 +524,7 @@ var CardGroupView = Backbone.View.extend({
     size: function() {
         return Object.keys(this.cards).length;
     },
-    add: function(card) {
+    addCard: function(card) {
         this.cards[card.cid] = card;
         if (1 < this.size()) {
             this._group();
@@ -528,14 +532,48 @@ var CardGroupView = Backbone.View.extend({
             this._ungroup();
         }
     },
-    remove: function(card) {
+    destroy: function(){
+        this._ungroup();
+        this.remove();
+    },
+    removeCard: function(card) {
         delete this.cards[card.cid];
+    },
+    getPower: function() {
+        for (var cid in this.cards) {
+            return this.cards[cid].getPower();
+        }
+    },
+    getToughness: function() {
+        for (var cid in this.cards) {
+            return this.cards[cid].getToughness();
+        }
+    },
+    getImage: function() {
+        for (var cid in this.cards) {
+            return this.cards[cid].getImage();
+        }
     },
     _group: function() {
         for (var cid in this.cards) {
             this.cards[cid].set('__grouped', true);
         }
+        this.$el
+            .empty()
+            .append(
+                $('<span>')
+                    .addClass('card-count-container')
+                    .append(this.size()),
+                $('<span>')
+                    .addClass('stats-container')
+                    .append(
+                        this.getPower() + ' / ' + this.getToughness()
+                    ),
+                $('<img>').attr('src', this.getImage())
+            );
+
         this.$el.show();
+
     },
     _ungroup: function() {
         for (var cid in this.cards) {

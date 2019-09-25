@@ -82,8 +82,7 @@ var Player = function(options) {
             },
         });
 
-        self.updateCounts();
-
+        // self.updateCounts();
         self._groupPermanents();
     });
 
@@ -91,7 +90,8 @@ var Player = function(options) {
         $('.battlefield .mtgcard').trigger('destroy', {
             'cid': card.cid
         });
-        player.updateCounts();
+        // player.updateCounts();
+        self._groupPermanents();
     });
 
 
@@ -781,18 +781,27 @@ Player.prototype.resolveSpell = function(card, callback) {
 
 
 Player.prototype._groupPermanents = function() {
-
-    return;
-
     var self = this;
-    var battlefield = this.getZone('battlefield');
-    battlefield.each(function(card) {
-        if (!self.groups[card.md5()]) {
 
+    for (var _hsh in this.groups) {
+        this.groups[_hsh].destroy();
+    }
+
+    this.groups = {};
+
+    var battlefield = this.getZone('battlefield');
+    for (var i=0; i<battlefield.length; i++) {
+        card = battlefield.models[i];
+        var _hsh = card.md5();
+        if (!self.groups[_hsh]) {
             var $container = $('<div>')
                 .addClass('mtgcard')
                 .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
                 .addClass(card.getTypes().join(' '));
+
+            self.groups[_hsh] = new CardGroupView({
+                el: $container
+            });
 
             if (card.isType('creature')) {
                 $('.battlefield .creatures').append($container);
@@ -800,12 +809,7 @@ Player.prototype._groupPermanents = function() {
                 $('.battlefield .noncreatures').append($container);
             }
 
-            self.groups[card.md5()] = new CardGroupView({
-                el: $container
-            });
-
-            // self.groups[card.md5()] = new CardGroupView();
         }
-        self.groups[card.md5()].add(card);
-    });
+        self.groups[_hsh].addCard(card);
+    };
 }
