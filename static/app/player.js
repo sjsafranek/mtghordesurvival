@@ -6,6 +6,8 @@ var Player = function(options) {
     this.handLimit = options.handLimit || 7;
     this.gameMode = options;
 
+    this.groups = {}
+
     // HACK
     this.gameMode = {
         name: "Zombie Horde Survival",
@@ -49,7 +51,6 @@ var Player = function(options) {
         });
     }
 
-
     this.zones.battlefield.on('add', function(card){
         var $container = $('<div>')
             .addClass('mtgcard')
@@ -81,7 +82,9 @@ var Player = function(options) {
             },
         });
 
-        player.updateCounts();
+        self.updateCounts();
+
+        self._groupPermanents();
     });
 
     this.zones.battlefield.on('remove', function(card) {
@@ -123,8 +126,6 @@ var Player = function(options) {
         );
     });
     //.end
-
-
 }
 
 Player.prototype.getZone = function(name) {
@@ -775,4 +776,36 @@ Player.prototype.resolveSpell = function(card, callback) {
     }
 
     callback && callback();
+}
+
+
+
+Player.prototype._groupPermanents = function() {
+
+    return;
+
+    var self = this;
+    var battlefield = this.getZone('battlefield');
+    battlefield.each(function(card) {
+        if (!self.groups[card.md5()]) {
+
+            var $container = $('<div>')
+                .addClass('mtgcard')
+                .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
+                .addClass(card.getTypes().join(' '));
+
+            if (card.isType('creature')) {
+                $('.battlefield .creatures').append($container);
+            } else {
+                $('.battlefield .noncreatures').append($container);
+            }
+
+            self.groups[card.md5()] = new CardGroupView({
+                el: $container
+            });
+
+            // self.groups[card.md5()] = new CardGroupView();
+        }
+        self.groups[card.md5()].add(card);
+    });
 }

@@ -506,3 +506,41 @@ var CardView = Backbone.View.extend({
     }
 
 });
+
+
+
+
+var CardGroupView = Backbone.View.extend({
+    template: _.template($('#card_template').html()),
+    initialize: function(){
+        var self = this;
+        this.cards = {};
+        this.$el.hide();
+    },
+    size: function() {
+        return Object.keys(this.cards).length;
+    },
+    add: function(card) {
+        this.cards[card.cid] = card;
+        if (1 < this.size()) {
+            this._group();
+        } else {
+            this._ungroup();
+        }
+    },
+    remove: function(card) {
+        delete this.cards[card.cid];
+    },
+    _group: function() {
+        for (var cid in this.cards) {
+            this.cards[cid].set('__grouped', true);
+        }
+        this.$el.show();
+    },
+    _ungroup: function() {
+        for (var cid in this.cards) {
+            this.cards[cid].set('__grouped', false);
+        }
+        this.$el.hide();
+    }
+});
