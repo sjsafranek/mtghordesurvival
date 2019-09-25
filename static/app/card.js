@@ -540,6 +540,7 @@ var CardView = Backbone.View.extend({
 
 
 var CardGroupView = Backbone.View.extend({
+    collection: null,
     template: _.template($('#card_template').html()),
     initialize: function(){
         var self = this;
@@ -549,7 +550,25 @@ var CardGroupView = Backbone.View.extend({
         this._oncontextmenu = function(e) {
             self.contextMenu(e);
         }
+        this._dblclick = function(e) {
+            self.dblclick(e);
+        }
         this.$el.on('contextmenu', this._oncontextmenu);
+        this.$el.on('dblclick', this._dblclick);
+    },
+
+    dblclick: function(e) {
+        if (this.getCard().isTapped()) {
+            var actions = this._getAllCards().map(function(card){
+                return card.untap();
+            });
+            player.addGameActionGroup("Untap", actions);
+        } else {
+            var actions = this._getAllCards().map(function(card){
+                return card.tap();
+            });
+            player.addGameActionGroup("Tap", actions);
+        }
     },
 
     getCard: function(i) {
@@ -557,9 +576,13 @@ var CardGroupView = Backbone.View.extend({
             return Object.values(this.cards)[i];
         }
         for (var cid in this.cards) {
-            return this.cards[cid]
+            return this.cards[cid];
         }
         return null;
+    },
+
+    _getAllCards: function() {
+        return Object.values(this.cards);
     },
 
     _getCards: function(callback) {
@@ -589,7 +612,7 @@ var CardGroupView = Backbone.View.extend({
             var actions = cards.map(function(card){
                 return card.tap();
             });
-            player.addGameActionGroup("Tap creatures", actions);
+            player.addGameActionGroup("Tap", actions);
         });
     },
 
@@ -598,32 +621,56 @@ var CardGroupView = Backbone.View.extend({
             var actions = cards.map(function(card){
                 return card.untap();
             });
-            player.addGameActionGroup("Untap creatures", actions);
+            player.addGameActionGroup("Untap", actions);
         });
     },
 
     nocombat: function() {
         this._getCards(function(cards){
+            var actions = cards.map(function(card){
+                return card.nocombat();
+            });
         });
+        player.addGameActionGroup("Remove creatures from combat", actions);
     },
 
     moveTo: function(zone) {
         this._getCards(function(cards){
+            var actions = cards.map(function(card) {
+                return card.moveTo(zone);
+            });
+            player.addGameActionGroup("Move to zone", actions);
         });
     },
 
-    putIntoLibraryShuffle: function() {
+    putIntoLibraryShuffle: function(){
+        var library = player.getZone('library');
         this._getCards(function(cards){
+            var actions = cards.map(function(card) {
+                return card.moveTo(library);
+            });
+            actions.push(library.shuffle());
+            player.addGameActionGroup("Put into library", actions);
         });
     },
 
     putIntoLibaryTop: function() {
+        var library = player.getZone('library');
         this._getCards(function(cards){
+            var actions = cards.map(function(card) {
+                return library.addTop(card);
+            });
+            player.addGameActionGroup("Put on top of library", actions);
         });
     },
 
     putIntoLibraryBottom: function() {
+        var library = player.getZone('library');
         this._getCards(function(cards){
+            var actions = cards.map(function(card) {
+                return library.addBottom(card);
+            });
+            player.addGameActionGroup("Put on bottom of library", actions);
         });
     },
 
@@ -660,11 +707,11 @@ var CardGroupView = Backbone.View.extend({
                         case 'nocombat':
                             return self.nocombat();
                         case 'destroy':
-                            return self.moveTo({zone: 'graveyard'});
+                            return self.moveTo(player.getZone('graveyard'));
                         case 'exile':
-                            return self.moveTo({zone: 'exile'});
+                            return self.moveTo(player.getZone('exile'));
                         case 'hand':
-                            return self.moveTo({zone: 'hand'});
+                            return self.moveTo(player.getZone('hand'));
                         case 'putintolibraryshuffle':
                             return self.putIntoLibraryShuffle();
                         case 'putintolibrarytop':
