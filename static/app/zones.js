@@ -54,19 +54,16 @@ var Zone = Backbone.Collection.extend({
     addTop: function(card){
         var self = this;
         var oldOrder = this._order;
-        var moveToAction;
-        card.moveTo(this, function(action) {
-            moveToAction = action;
-        });
+        var action = card.moveTo(this);
         return new GameAction(
             "Add " + card.getName() + " to top of " + this.getName(),
             function(callback) {
-                moveToAction.do();
+                action.do();
                 self._order.unshift(card.cid);
                 callback && callback();
             },
             function(callback) {
-                moveToAction.undo();
+                action.undo();
                 self._order = oldOrder;
                 callback && callback();
             }
@@ -76,33 +73,30 @@ var Zone = Backbone.Collection.extend({
     addBottom: function(card){
         var self = this;
         var oldOrder = this._order;
-        var moveToAction;
-        card.moveTo(this, function(action) {
-            moveToAction = action;
-        });
+        var action = card.moveTo(this);
         return new GameAction(
             "Add " + card.getName() + " to bottom of " + this.getName(),
             function(callback) {
-                moveToAction.do();
+                action.do();
                 self._order.push(card.cid);
                 callback && callback();
             },
             function(callback) {
-                moveToAction.undo();
+                action.undo();
                 self._order = oldOrder;
                 callback && callback();
             }
         );
     },
 
-    draw: function(zone, callback){
+    draw: function(zone){
         if (0 == this.length) return null;
         var card;
         while (!card) {
             var cid = this._order.shift();
             card = this.get(cid);
         }
-        zone && card.moveTo(zone, callback);
+        zone && player.addGameAction(card.moveTo(zone));
         return card;
     }
 });

@@ -96,6 +96,10 @@ var Player = function(options) {
     this.addListeners();
 }
 
+Player.prototype.getZone = function(name) {
+    return this.zones[name];
+}
+
 Player.prototype.addGameAction = function(action) {
     if (!action) return;
     if (this.currentGameAction != this.gameActions.length - 1) {
@@ -477,37 +481,6 @@ Player.prototype.continue = function(callback) {
         console.log(err);
     });
 
-
-/*
-    var promise = new Promise((resolve, reject) => {
-        self._reject = reject;
-        self.beginningPhase(resolve);
-    }).then(function() {
-        return new Promise((resolve, reject) => {
-            self._reject = reject;
-            self.precombatMainPhase(resolve);
-        });
-    }).then(function() {
-        return new Promise((resolve, reject) => {
-            self._reject = reject;
-            self.combatPhase(resolve);
-        });
-    }).then(function() {
-        return new Promise((resolve, reject) => {
-            self._reject = reject;
-            self.postcombatMainPhase(resolve);
-        });
-    }).then(function() {
-        return new Promise((resolve, reject) => {
-            self._reject = reject;
-            self.endingPhase(resolve);
-        });
-    }).then(function() {
-        self._nextPhase("Opponents Turn", "opponentsturn");
-        callback && callback();
-    });
-*/
-
 }
 
 Player.prototype._passPriority = function(callback) {
@@ -620,7 +593,6 @@ Player.prototype._mainPhase = function(callback) {
                     resolve();
                     // continue when no cards are left to cast
                     if (0 == self.zones.hand.length) {
-                        // callback && callback();
                         self._passPriority(callback);
                     }
                 });
@@ -691,9 +663,7 @@ Player.prototype.endingPhase = function(callback) {
         var i=0;
         for (var i=this.zones.hand.length-1; i != this.handLimit-1; i--) {
             var card = this.zones.hand.models[i];
-            card.moveTo(this.zones.graveyard, function(action) {
-                actions.push(action);
-            });
+            actions.push(card.moveTo(this.getZone('graveyard')));
         }
         this.addGameActionGroup('Discard to hand limit', actions);
     }
@@ -741,7 +711,7 @@ Player.prototype.drawCard = function() {
         toast('No cards in library!');
         return;
     }
-    var card = this.zones.library.draw(this.zones.hand);
+    var card = this.getZone('library').draw(this.getZone('hand'));
     return card;
 }
 
@@ -749,9 +719,9 @@ Player.prototype.drawCards = function(n) {
     var self = this;
     var actions = [];
     for (var i=0; i<n; i++) {
-        this.zones.library.draw(this.zones.hand, function(action) {
-            actions.push(action);
-        });
+        actions.push(
+            this.getZone('library').draw(this.getZone('hand'))
+        );
     }
     this.addGameActionGroup('Draw ' + n + ' cards', actions);
 }
@@ -773,7 +743,6 @@ Player.prototype.getCardsByType = function(cardType, zone) {
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
     toast('Cast ' + card.getName());
-    // card.moveTo(this.zones.stack);
 
     return Swal.fire({
         title: card.getName(),
@@ -788,7 +757,8 @@ Player.prototype.castSpell = function(card, callback) {
             Swal.fire(
                 GameUtils.selectZoneOptions({exclude:['battlefield']})
             ).then(function(result) {
-                result.value && card.moveTo(self.zones[result.value]);
+                result.value &&
+                    self.addGameAction(card.moveTo(self.getZone(result.value)));
                 callback && callback();
             });
             return;
@@ -804,9 +774,9 @@ Player.prototype.resolveSpell = function(card, callback) {
 
     card.resetState();
     if (card.isPermanent()) {
-        card.moveTo(this.zones.battlefield);
+        this.addGameAction(card.moveTo(this.getZone('battlefield')));
     } else {
-        card.moveTo(this.zones.graveyard);
+        this.addGameAction(card.moveTo(this.getZone('graveyard')));
     }
 
     callback && callback();

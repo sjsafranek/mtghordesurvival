@@ -252,11 +252,11 @@ var Card = Backbone.Model.extend({
         callback && callback();
     },
 
-    moveTo: function(newZone, callback) {
+    moveTo: function(newZone) {
         var self = this;
         var oldZone = this.collection;
         if (newZone != oldZone) {
-            var action = new GameAction(
+            return new GameAction(
                     this.getName() + " put into the " + newZone.getName() + (oldZone ? " from the " + oldZone.getName() : ""),
                     function(callback) {
                         self._moveTo(newZone, callback);
@@ -265,9 +265,8 @@ var Card = Backbone.Model.extend({
                         self._moveTo(oldZone, callback);
                     }
                 );
-            callback && callback(action);
-            !callback && player.addGameAction(action);
         }
+        return null;
     }
 
 });
@@ -385,23 +384,21 @@ var CardView = Backbone.View.extend({
     },
 
     putIntoLibaryTop: function(){
-        var library = player.zones.library;
+        var library = player.getZone('library');
         player.addGameAction(library.addTop(self.model));
     },
 
     putIntoLibraryBottom: function(){
-        var library = player.zones.library;
+        var library = player.getZone('library');
         player.addGameAction(library.addBottom(self.model));
     },
 
     putIntoLibraryShuffle: function(){
-        var library = player.zones.library;
-        self.model.moveTo(library, function(action) {
-            player.addGameActionGroup(
-                "Shuffle "+self.model.getName()+" into library",
-                [action, library.shuffle()]
-            );
-        });
+        var library = player.getZone('library');
+        player.addGameActionGroup(
+            "Shuffle "+this.model.getName()+" into library",
+            [this.model.moveTo(library), library.shuffle()]
+        );
     },
 
     contextMenu: function(e) {
@@ -529,7 +526,8 @@ var CardView = Backbone.View.extend({
         if (args.cardType && !this.model.isType(args.cardType)) {
             return;
         }
-        this.model.moveTo(player.zones[args.zone]);
+        var action = this.model.moveTo(player.getZone(args.zone));
+        player.addGameAction(action);
     },
 
     render: function(){
