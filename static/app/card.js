@@ -23,7 +23,8 @@ var Card = Backbone.Model.extend({
             '__owner': undefined,
             '__summoningSickness': true,
             '__selected': false,
-            '__grouped': false
+            '__grouped': false,
+            '__zone': ''
         });
     },
 
@@ -38,8 +39,8 @@ var Card = Backbone.Model.extend({
             this.get('__controller'),
             this.get('__owner'),
             this.get('__summoningSickness'),
-            this.get('__selected'),
-            this.get('__grouped')
+            this.get('__selected')
+            // this.get('__grouped')
         ]
     },
 
@@ -300,6 +301,9 @@ var CardView = Backbone.View.extend({
     initialize: function(){
         var self = this;
 
+        this.model.get('__grouped', false);
+        this.group = undefined;
+
         this.model.on('change', this.onChange, this);
 
         this.onChange({
@@ -326,10 +330,22 @@ var CardView = Backbone.View.extend({
         'mouseover': 'mouseover'
     },
 
+    joinGroup: function(){
+        if (!player) return;
+        console.log('JOIN GROUP!!', this.model.md5());
+        var group = player.getGroup(this.model);
+        this.group &&
+            this.group.hasCard(this.model) &&
+                this.group != group &&
+                    this.group.removeCard(this.model);
+        this.group = group;
+        group.addCard(this.model);
+    },
+
     onChange: function(event) {
         var self = this;
 
-        player && player.onCardChange(this.model);
+        this.joinGroup();
 
         var changed = event.changed;
 
@@ -369,6 +385,8 @@ var CardView = Backbone.View.extend({
         if (undefined != changed.__grouped) {
             changed.__grouped ? this.$el.hide() : this.$el.show()
         }
+        this.model.get('__grouped') ? this.$el.hide() : this.$el.show();
+        //.end
     },
 
     mouseover: function(event) {
@@ -378,7 +396,9 @@ var CardView = Backbone.View.extend({
 
     destroy: function(event, args) {
         if (args.cid != this.model.cid) return;
+        this.model.set('__grouped', false);
         this.model.off('change', this.onChange, this);
+        this.group && this.group.removeCard(this.model);
         this.remove();
     },
 
@@ -570,7 +590,6 @@ var CardGroupView = Backbone.View.extend({
                 return card.tap();
             });
             player.addGameActionGroup("Tap creatures", actions);
-            player._groupPermanents();
         });
     },
 
@@ -580,7 +599,6 @@ var CardGroupView = Backbone.View.extend({
                 return card.untap();
             });
             player.addGameActionGroup("Untap creatures", actions);
-            player._groupPermanents();
         });
     },
 
@@ -695,25 +713,31 @@ var CardGroupView = Backbone.View.extend({
         // allow for tap animation to complete
         card.isAttacking() ? this.$el.addClass('attacking') : this.$el.removeClass('attacking');
         card.isAttacking() ? $('.combatZone').append(this.$el) : $('.creatures').append(this.$el);
-
         card.isSelected() ?
             this.$el.addClass('selected') : this.$el.removeClass('selected');
+    },
 
+    removeCard: function(card) {
+        delete this.cards[card.cid];
+        if (1 < this.size()) {
+            this._group();
+        } else {
+            this._ungroup();
+        }
+        this.$el.find('.card-count-container')
+            .empty()
+            .append(this.size());
     },
 
     hasCard: function(card) {
         return this.cards[card.cid] ? true : false;
     },
 
-    destroy: function(){
-        this._ungroup();
-        this.$el.off('contextmenu', this._oncontextmenu);
-        this.remove();
-    },
-
-    removeCard: function(card) {
-        delete this.cards[card.cid];
-    },
+    // destroy: function(){
+    //     this._ungroup();
+    //     this.$el.off('contextmenu', this._oncontextmenu);
+    //     this.remove();
+    // },
 
     getPower: function() {
         for (var cid in this.cards) {
@@ -750,15 +774,16 @@ var CardGroupView = Backbone.View.extend({
                     ),
                 $('<img>').attr('src', this.getImage())
             );
-
         this.$el.show();
-
     },
 
     _ungroup: function() {
         for (var cid in this.cards) {
             this.cards[cid].set('__grouped', false);
         }
-        this.$el.hide();
+        this.$el.find('.card-count-container')
+            .empty()
+            .append(this.size());
+        (2 > this.size()) && this.$el.hide();
     }
 });

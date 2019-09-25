@@ -89,6 +89,10 @@ var Zone = Backbone.Collection.extend({
         );
     },
 
+    hasCard: function(card) {
+        return this.get(card.cid) ? true : false;
+    },
+
     draw: function(zone){
         if (0 == this.length) return null;
         var card;
