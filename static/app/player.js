@@ -778,11 +778,38 @@ Player.prototype.resolveSpell = function(card, callback) {
     callback && callback();
 }
 
+Player.prototype.onCardChange = function(card) {
+    console.log('changed', card);
 
+    // for (var _hsh in this.groups) {
+    //     if (this.groups[_hsh].hasCard(card)) {
+    //         this.groups[_hsh].removeCard(card)
+    //     }
+    // }
+    //
+    // var _hsh = card.md5();
+    // if (!this.groups[_hsh]) {
+    //     var $container = $('<div>')
+    //         .addClass('mtgcard')
+    //         .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
+    //         .addClass(card.getTypes().join(' '));
+    //     this.groups[_hsh] = new CardGroupView({
+    //         el: $container
+    //     });
+    //     if (card.isType('creature')) {
+    //         $('.battlefield .creatures').append($container);
+    //     } else {
+    //         $('.battlefield .noncreatures').append($container);
+    //     }
+    // }
+    //
+    // this.groups[_hsh].addCard(card);
+}
 
 Player.prototype._groupPermanents = function() {
     var self = this;
 
+    // needs changed
     for (var _hsh in this.groups) {
         this.groups[_hsh].destroy();
     }
@@ -793,13 +820,13 @@ Player.prototype._groupPermanents = function() {
     for (var i=0; i<battlefield.length; i++) {
         card = battlefield.models[i];
         var _hsh = card.md5();
-        if (!self.groups[_hsh]) {
+        if (!this.groups[_hsh]) {
             var $container = $('<div>')
                 .addClass('mtgcard')
                 .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
                 .addClass(card.getTypes().join(' '));
 
-            self.groups[_hsh] = new CardGroupView({
+            this.groups[_hsh] = new CardGroupView({
                 el: $container
             });
 
@@ -810,6 +837,6 @@ Player.prototype._groupPermanents = function() {
             }
 
         }
-        self.groups[_hsh].addCard(card);
+        this.groups[_hsh].addCard(card);
     };
 }

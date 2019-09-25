@@ -328,6 +328,9 @@ var CardView = Backbone.View.extend({
 
     onChange: function(event) {
         var self = this;
+
+        player && player.onCardChange(this.model);
+
         var changed = event.changed;
 
         // tapped
@@ -340,7 +343,6 @@ var CardView = Backbone.View.extend({
         // allow for tap animation to complete
         undefined != changed.__attacking && changed.__attacking && this.$el.addClass('attacking');
         undefined != changed.__attacking && changed.__attacking && setTimeout(function(){
-            console.log(self);
             $('.combatZone').append(self.$el);
         },300);
 
@@ -514,16 +516,169 @@ var CardView = Backbone.View.extend({
 
 
 
+
+
+
 var CardGroupView = Backbone.View.extend({
     template: _.template($('#card_template').html()),
     initialize: function(){
         var self = this;
         this.cards = {};
         this.$el.hide();
+        this._listeners = {};
+        this._oncontextmenu = function(e) {
+            self.contextMenu(e);
+        }
+        this.$el.on('contextmenu', this._oncontextmenu);
     },
+
+    getCard: function(i) {
+        if (i) {
+            return Object.values(this.cards)[i];
+        }
+        for (var cid in this.cards) {
+            return this.cards[cid]
+        }
+        return null;
+    },
+
+    _getCards: function(callback) {
+        var self = this;
+        swal.fire({
+                title: 'How many cards?',
+                input: 'range',
+                inputAttributes: {
+                    min: 0,
+                    max: this.size(),
+                    step: 1
+                }
+            })
+            .then(function(result) {
+                if (result.value) {
+                    var cards = []
+                    for (var i=0; i<parseInt(result.value); i++) {
+                        cards.push(self.getCard(i));
+                    }
+                    callback(cards);
+                }
+            });
+    },
+
+    tap: function() {
+        this._getCards(function(cards){
+            var actions = cards.map(function(card){
+                return card.tap();
+            });
+            player.addGameActionGroup("Tap creatures", actions);
+            player._groupPermanents();
+        });
+    },
+
+    untap: function() {
+        this._getCards(function(cards){
+            var actions = cards.map(function(card){
+                return card.untap();
+            });
+            player.addGameActionGroup("Untap creatures", actions);
+            player._groupPermanents();
+        });
+    },
+
+    nocombat: function() {
+        this._getCards(function(cards){
+        });
+    },
+
+    moveTo: function(zone) {
+        this._getCards(function(cards){
+        });
+    },
+
+    putIntoLibraryShuffle: function() {
+        this._getCards(function(cards){
+        });
+    },
+
+    putIntoLibaryTop: function() {
+        this._getCards(function(cards){
+        });
+    },
+
+    putIntoLibraryBottom: function() {
+        this._getCards(function(cards){
+        });
+    },
+
+    contextMenu: function(e) {
+        var self = this;
+        e.preventDefault();
+
+        var inputOptions = {
+            destroy: 'Destroy',
+            exile: 'Exile',
+            hand: 'Return to hand',
+            putintolibraryshuffle: 'Put into library (shuffle)',
+            putintolibrarytop: 'Put on the top of library',
+            putintolibrarybottom: 'Put on the bottom of library'
+        };
+        this.getCard().isTapped() ? (inputOptions.untap = "Untap") : (inputOptions.tap = "Tap");
+        this.getCard().isAttacking() && (inputOptions.nocombat = "Remove from combat");
+        // this.getCard().isType('creature') && (inputOptions.damage = "Damage");
+
+        swal.fire({
+                title: 'Select Action',
+                input: 'select',
+                inputOptions: inputOptions,
+                inputPlaceholder: 'Select an action',
+                showCacnelButton: true
+            })
+            .then(function(result) {
+                if (result.value) {
+                    switch(result.value) {
+                        case 'tap':
+                            return self.tap();
+                        case 'untap':
+                            return self.untap();
+                        case 'nocombat':
+                            return self.nocombat();
+                        case 'destroy':
+                            return self.moveTo({zone: 'graveyard'});
+                        case 'exile':
+                            return self.moveTo({zone: 'exile'});
+                        case 'hand':
+                            return self.moveTo({zone: 'hand'});
+                        case 'putintolibraryshuffle':
+                            return self.putIntoLibraryShuffle();
+                        case 'putintolibrarytop':
+                            return self.putIntoLibaryTop();
+                        case 'putintolibrarybottom':
+                            return self.putIntoLibraryBottom();
+                        // case 'damage':
+                        //     return Swal.fire({
+                        //         title: "Set damage",
+                        //         input: "number",
+                        //         inputValue: self.model.getDamage()
+                        //     }).then(function(result) {
+                        //         if (result.value) {
+                        //             var action = self.model.setDamage(
+                        //                 parseInt(result.value)
+                        //             );
+                        //             player.addGameAction(action);
+                        //         }
+                        //     });
+                        default:
+                            console.log(result);
+                    }
+                }
+            });
+
+        return false;    // blocks default Webbrowser right click menu
+    },
+
     size: function() {
         return Object.keys(this.cards).length;
     },
+
     addCard: function(card) {
         this.cards[card.cid] = card;
         if (1 < this.size()) {
@@ -531,29 +686,53 @@ var CardGroupView = Backbone.View.extend({
         } else {
             this._ungroup();
         }
+
+        // tapped
+        card.isTapped() ?
+            this.$el.addClass('tapped') : this.$el.removeClass('tapped');
+
+        // combat
+        // allow for tap animation to complete
+        card.isAttacking() ? this.$el.addClass('attacking') : this.$el.removeClass('attacking');
+        card.isAttacking() ? $('.combatZone').append(this.$el) : $('.creatures').append(this.$el);
+
+        card.isSelected() ?
+            this.$el.addClass('selected') : this.$el.removeClass('selected');
+
     },
+
+    hasCard: function(card) {
+        return this.cards[card.cid] ? true : false;
+    },
+
     destroy: function(){
         this._ungroup();
+        this.$el.off('contextmenu', this._oncontextmenu);
         this.remove();
     },
+
     removeCard: function(card) {
         delete this.cards[card.cid];
     },
+
     getPower: function() {
         for (var cid in this.cards) {
             return this.cards[cid].getPower();
         }
     },
+
     getToughness: function() {
         for (var cid in this.cards) {
             return this.cards[cid].getToughness();
         }
     },
+
     getImage: function() {
         for (var cid in this.cards) {
             return this.cards[cid].getImage();
         }
     },
+
     _group: function() {
         for (var cid in this.cards) {
             this.cards[cid].set('__grouped', true);
@@ -575,6 +754,7 @@ var CardGroupView = Backbone.View.extend({
         this.$el.show();
 
     },
+
     _ungroup: function() {
         for (var cid in this.cards) {
             this.cards[cid].set('__grouped', false);
