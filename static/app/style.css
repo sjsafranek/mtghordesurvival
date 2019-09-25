@@ -8,7 +8,7 @@ body {
 }
 
 .turn-phase-icon path, .turn-phase-icon rect {
-    transition: fill 0.3s linear
+    transition: fill 0.3s linear;
 }
 
 .turn-phase-icon.current-phase path, .turn-phase-icon.current-phase rect {
@@ -36,20 +36,21 @@ body {
     position: absolute;
 }
 
-/*.mtgcard .card-text-container {
+.mtgcard .card-text-container {
     position: absolute;
     z-index: 9;
-    background-color: rgba(256, 256, 256, 0.6);
+    background-color: rgba(256, 256, 256, 0.0);
     font-size: 11px;
     height: 100%;
     width: 100%;
     padding: 8px;
     border-radius: 4px;
-}*/
+    transition: background-color 0.3s linear;
+}
 
 .mtgcard .card-count-container {
     position: absolute;
-    z-index: 9;
+    z-index: 10;
     color: white;
     font-weight: bold;
     font-size: 32px;

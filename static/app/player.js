@@ -650,7 +650,7 @@ Player.prototype.endingPhase = function(callback) {
 
     // clear damage
     var actions = this.zones.battlefield.filter(function(card) {
-                    return card.isSelected() && 0 != card.getDamage() && card.isType('creature');
+                    return 0 != card.getDamage() && card.isType('creature');
                 }).map(function(card){
                     return card.clearDamage();
                 });
