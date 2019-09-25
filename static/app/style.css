@@ -1,3 +1,20 @@
+body {
+    background-color: black;
+    color: white;
+}
+
+.controls {
+    text-align: center;
+}
+
+.turn-phase-icon path, .turn-phase-icon rect {
+    transition: fill 0.3s linear
+}
+
+.turn-phase-icon.current-phase path, .turn-phase-icon.current-phase rect {
+    fill: #6000D6;
+}
+
 
 .mtgcard {
     display: inline-block;

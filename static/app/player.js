@@ -94,6 +94,36 @@ var Player = function(options) {
 
     this.updateCounts();
     this.addListeners();
+
+
+
+    $.get("static/app/icons/Dot - White.svg").then(function(data){
+        $('.turn-phase-container').append(
+            $(data).find('svg').addClass('turn-phase-icon beginning-phase')
+        );
+    });
+    $.get("static/app/icons/Card - White.svg").then(function(data){
+        $('.turn-phase-container').append(
+            $(data).find('svg').addClass('turn-phase-icon precombat-main-phase')
+        );
+    });
+    $.get("static/app/icons/Sword - White.svg").then(function(data){
+        $('.turn-phase-container').append(
+            $(data).find('svg').addClass('turn-phase-icon combat-phase')
+        );
+    });
+    $.get("static/app/icons/Card - White.svg").then(function(data){
+        $('.turn-phase-container').append(
+            $(data).find('svg').addClass('turn-phase-icon postcombat-main-phase')
+        );
+    });
+    $.get("static/app/icons/Dot - White.svg").then(function(data){
+        $('.turn-phase-container').append(
+            $(data).find('svg').addClass('turn-phase-icon ending-phase')
+        );
+    });
+
+
 }
 
 Player.prototype.getZone = function(name) {
@@ -466,7 +496,7 @@ Player.prototype.continue = function(callback) {
             });
         },
         function(){
-            self._nextPhase("Opponents Turn", "opponentsturn");
+            // self._nextPhase("Opponents Turn", "opponentsturn");
             $('#takeTurn').prop('disabled', false);
             callback && callback();
         }
@@ -494,72 +524,64 @@ Player.prototype._passPriority = function(callback) {
     $('.controls').append($elem);
 }
 
-Player.prototype._nextPhase = function(message, nextPhase) {
-    var self = this;
-    var prevPhase = this.turn.phase;
-    var prevStep = this.turn.step;
-    this.addGameAction(
-        new GameAction(
-            message,
-            function(callback) {
-                self.turn.phase = nextPhase;
-                self.turn.step = "";
-                $('.turn-phase').text(self.turn.phase);
-                $('.turn-step').text(self.turn.step);
-                callback && callback();
-            },
-            function(callback) {
-                self.turn.phase = prevPhase;
-                self.turn.step = prevStep;
-                $('.turn-phase').text(self.turn.phase);
-                $('.turn-step').text(self.turn.step);
-                callback && callback();
-            }
-        )
-    );
-}
-
-Player.prototype._nextStep = function(message, nextStep) {
-    var self = this;
-    var prevStep = this.turn.step;
-    this.addGameAction(
-        new GameAction(
-            message,
-            function(callback) {
-                self.turn.step = nextStep;
-                $('.turn-step').text(self.turn.step);
-                callback && callback();
-            },
-            function(callback) {
-                self.turn.step = prevStep;
-                $('.turn-step').text(self.turn.step);
-                callback && callback();
-            }
-        )
-    );
-}
+// Player.prototype._nextPhase = function(message, nextPhase) {
+//     var self = this;
+//     var prevPhase = this.turn.phase;
+//     var prevStep = this.turn.step;
+//     this.addGameAction(
+//         new GameAction(
+//             message,
+//             function(callback) {
+//                 self.turn.phase = nextPhase;
+//                 self.turn.step = "";
+//                 $('.turn-phase').text(self.turn.phase);
+//                 $('.turn-step').text(self.turn.step);
+//                 callback && callback();
+//             },
+//             function(callback) {
+//                 self.turn.phase = prevPhase;
+//                 self.turn.step = prevStep;
+//                 $('.turn-phase').text(self.turn.phase);
+//                 $('.turn-step').text(self.turn.step);
+//                 callback && callback();
+//             }
+//         )
+//     );
+// }
+//
+// Player.prototype._nextStep = function(message, nextStep) {
+//     var self = this;
+//     var prevStep = this.turn.step;
+//     this.addGameAction(
+//         new GameAction(
+//             message,
+//             function(callback) {
+//                 self.turn.step = nextStep;
+//                 $('.turn-step').text(self.turn.step);
+//                 callback && callback();
+//             },
+//             function(callback) {
+//                 self.turn.step = prevStep;
+//                 $('.turn-step').text(self.turn.step);
+//                 callback && callback();
+//             }
+//         )
+//     );
+// }
 
 Player.prototype.beginningPhase = function(callback) {
     // beginningPhase
     //   - untap lands and creatures
     //   - draw a card
     var self = this;
+    $('.turn-phase-icon').removeClass('current-phase');
+    $('.beginning-phase').addClass('current-phase');
 
-    // // TODO
-    // // skip if needed
-    // if (this.phase && "opponentsturn" != this.phase) {
-    //     callback && callback();
-    //     return;
-    // }//.end
-
-    this._nextPhase("Beginning Phase", "beginning");
-
-    this._nextStep("Untap step", "untap");
-    this.addGameActionGroup('Untap', this.zones.battlefield.map(function(card) {
+    var actions = this.zones.battlefield.map(function(card) {
         return card.untap();
-    }));
+    });
+    this.addGameActionGroup('Beginning Phase', actions);
 
-    this._nextStep("Draw step", "draw");
     var card = this.drawCard();
 
     // game mode handler
@@ -572,7 +594,8 @@ Player.prototype.precombatMainPhase = function(callback){
     // precombatMainPhase
     //   - play a land
     //   - cast creatures & spells
-    this._nextPhase("Precombat Main Phase", "precombatmainphase");
+    $('.turn-phase-icon').removeClass('current-phase');
+    $('.precombat-main-phase').addClass('current-phase');
     this._mainPhase(callback);
 }
 
@@ -607,9 +630,11 @@ Player.prototype.combatPhase = function(callback) {
     //   - declare blockers
     //   - combat damage
     var self = this;
-    this._nextPhase("Combat Phase", "combat");
 
-    this._nextStep("Declare Attackers", "attackers");
+
+    $('.turn-phase-icon').removeClass('current-phase');
+    $('.combat-phase').addClass('current-phase');
+
     var creatures = this.zones.battlefield.filter(function(card) {
         return card.isType('Creature');
     });
@@ -618,10 +643,9 @@ Player.prototype.combatPhase = function(callback) {
     }));
 
     this._passPriority(function(){
-        self._nextStep("Declare Blockers", "blockers");
+
         self._passPriority(function(){
 
-            self._nextStep("Combat damage", "combatdamage");
             var creatures = self.zones.battlefield.filter(function(card) {
                 return card.isType('Creature');
             });
@@ -639,7 +663,8 @@ Player.prototype.postcombatMainPhase = function(callback){
     //  postcombatMainPhase
     //   - play a land
     //   - cast creatures & spells
-    this._nextPhase("Postcombat Main Phase", "postcombatmainphase");
+    $('.turn-phase-icon').removeClass('current-phase');
+    $('.postcombat-main-phase').addClass('current-phase');
     this._mainPhase(callback);
 }
 
@@ -647,28 +672,28 @@ Player.prototype.endingPhase = function(callback) {
     // endingPhase
     //   - remove damage
     //   - pass the turn to opponent
-    this._nextPhase("Ending Phase", "endingphase");
+    $('.turn-phase-icon').removeClass('current-phase');
+    $('.ending-phase').addClass('current-phase');
 
-    this._nextStep("Clear Damage", "cleardamage");
-    var cards = this.zones.battlefield.filter(function(card) {
-        return card.isSelected() && 0 != card.getDamage() && card.isType('creature');
-    });
-    this.addGameActionGroup('Clear damage', cards.map(function(card){
-        return card.clearDamage();
-    }));
+    // clear damage
+    var actions = this.zones.battlefield.filter(function(card) {
+                    return card.isSelected() && 0 != card.getDamage() && card.isType('creature');
+                }).map(function(card){
+                    return card.clearDamage();
+                });
 
-    this._nextStep("Cleanup", "cleanup");
+    // discard down to hand limit
     if (this.zones.hand.length) {
-        var actions = []
         var i=0;
         for (var i=this.zones.hand.length-1; i != this.handLimit-1; i--) {
             var card = this.zones.hand.models[i];
             actions.push(card.moveTo(this.getZone('graveyard')));
         }
-        this.addGameActionGroup('Discard to hand limit', actions);
     }
 
-    // TODO: discard to hand limit
+    // run actions
+    this.addGameActionGroup('Ending Phase', actions);
+
     this._passPriority(callback);
 }
 

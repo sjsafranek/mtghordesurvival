@@ -13,15 +13,36 @@ var Card = Backbone.Model.extend({
     },
 
     resetState: function() {
-        this.set('__tapped', false);
-        this.set('__counters', {});
-        this.set('__attacking', false);
-        this.set('__blocking', false);
-        this.set('__damage', 0);
-        this.set('__controller', undefined);
-        this.set('__owner', undefined);
-        this.set('__summoningSickness', true);
-        this.set('__selected', false);
+        this.set({
+            '__counters': {},
+            '__tapped': false,
+            '__attacking': false,
+            '__blocking': false,
+            '__damage': 0,
+            '__controller': undefined,
+            '__owner': undefined,
+            '__summoningSickness': true,
+            '__selected': false,
+            '__grouped': false
+        });
+    },
+
+    md5: function() {
+        return md5(
+            JSON.stringify({
+                'name': this.getName(),
+                '__counters': this.get('__counters'),
+                '__tapped': this.get('__tapped'),
+                '__attacking': this.get('__attacking'),
+                '__blocking': this.get('__blocking'),
+                '__damage': this.get('__damage'),
+                '__controller': this.get('__controller'),
+                '__owner': this.get('__owner'),
+                '__summoningSickness': this.get('__summoningSickness'),
+                '__selected': this.get('__selected'),
+                '__grouped': this.get('__grouped')
+            })
+        );
     },
 
     _select: function() {
@@ -90,8 +111,6 @@ var Card = Backbone.Model.extend({
             '__tapped': true,
             '__attacking': true
         });
-        // this.set('__tapped', true);
-        // this.set('__attacking', true);
         callback && callback();
     },
 
@@ -100,8 +119,6 @@ var Card = Backbone.Model.extend({
             '__attacking': false,
             '__blocking': false
         });
-        // this.set('__attacking', false);
-        // this.set('__blocking', false);
         callback && callback();
     },
 
