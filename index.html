@@ -18,29 +18,12 @@
 
                     <div class="row">
                         <div class="col-md-12 controls">
-                            <h4 class="mt-5">Horde Survival</h4>
-                            <div class="row turn-phase-container">
-                                <!-- <object id="svg-object" data="static/app/icons/Dot - White.svg" type="image/svg+xml"></object>
-                                <object id="svg-object" data="static/app/icons/Card - White.svg" type="image/svg+xml"></object>
-                                <object id="svg-object" data="static/app/icons/Sword - White.svg" type="image/svg+xml"></object>
-                                <object id="svg-object" data="static/app/icons/Card - White.svg" type="image/svg+xml"></object>
-                                <object id="svg-object" data="static/app/icons/Dot - White.svg" type="image/svg+xml"></object> -->
-
-                                <!-- <div class="col-md-4">
-                                    <label>Turn: </label><span class="turn-number">0</span>
-                                </div>
-                                <div class="col-md-4">
-                                    <label>Phase: </label><span class="turn-phase"></span>
-                                </div>
-                                <div class="col-md-4">
-                                    <label>Step: </label><span class="turn-step"></span>
-                                </div> -->
+                            <h1 class="mt-5">Horde Survival</h1>
+                            <div class="row justify-content-md-center turn-phase-container">
+                                <!-- TODO PUT .svg opjects here -->
                             </div>
                             <button id="addZombie" class="btn btn-sm btn-danger ml-2" title="Add Zombie">
                                 <i class="fas fa-plus"></i>
-                            </button>
-                            <button id="takeTurn" class="btn btn-sm btn-primary ml-2" title="Take Turn">
-                                <i class="fas fa-forward"></i>
                             </button>
                         </div>
                     </div>
@@ -64,7 +47,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-12 battlefield ml-4">
+                        <div class="col-md-12 battlefield ml-4 mb-4">
                             <div class="row">
                                 <div class="col-md-8">
                                     <div class="row no-gutters creatures">
@@ -77,6 +60,12 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div id="game-controls-container" class="row justify-content-md-center">
+                        <button id="nextTurn" class="btn btn-lg btn-primary col-md-4 btn-block" title="Next Turn">
+                            <i class="fas fa-forward"></i>
+                        </button>
                     </div>
 
                 </main>

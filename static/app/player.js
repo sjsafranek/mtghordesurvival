@@ -96,7 +96,7 @@ var Player = function(options) {
     this.addListeners();
 
 
-
+    // TODO put this in the html template page
     $.get("static/app/icons/Dot - White.svg").then(function(data){
         $('.turn-phase-container').append(
             $(data).find('svg').addClass('turn-phase-icon beginning-phase')
@@ -122,6 +122,7 @@ var Player = function(options) {
             $(data).find('svg').addClass('turn-phase-icon ending-phase')
         );
     });
+    //.end
 
 
 }
@@ -383,6 +384,19 @@ Player.prototype.addListeners = function() {
     //     }
     // });
 
+    var $button = $('#nextTurn');
+    $button.on('click', function(e) {
+        $button
+            .prop('disabled', true)
+            .hide();
+        player.takeTurn(function(){
+            $button
+                .prop('disabled', false)
+                .show();
+        });
+    });
+
+
 
 }
 
@@ -396,8 +410,6 @@ Player.prototype.updateCounts = function() {
 
 Player.prototype.takeTurn = function(callback) {
     var self = this;
-
-    $('#takeTurn').prop('disabled', true);
 
     this.addGameAction(
         new GameAction(
@@ -423,14 +435,16 @@ Player.prototype.pause = function() {
     if (this._reject) {
         this._reject("Pause game");
         $('.continue').remove();
-        var $elem = $('<button>')
-            .addClass("btn btn-sm btn-success ml-2 continue")
-            .text('Continue')
+        var $elem = $('<button>', {title:'Continue'})
+            .addClass("btn btn-lg btn-primary col-md-4 continue")
+            .append(
+                $('<i>').addClass('fas fa-forward')
+            )
             .on('click', function(e) {
                 this.remove();
                 self.continue();
             });
-        $('.controls').append($elem);
+        $('#game-controls-container').append($elem);
     }
 }
 
@@ -514,60 +528,18 @@ Player.prototype.continue = function(callback) {
 }
 
 Player.prototype._passPriority = function(callback) {
-    var $elem = $('<button>')
-        .addClass("btn btn-sm btn-success ml-2 priority")
-        .text('Continue')
+    $('.continue').remove();
+    var $elem = $('<button>', {title:'Continue'})
+        .addClass("btn btn-lg btn-primary col-md-4 continue")
+        .append(
+            $('<i>').addClass('fas fa-forward')
+        )
         .on('click', function(e) {
             this.remove();
             callback && callback();
         });
-    $('.controls').append($elem);
+    $('#game-controls-container').append($elem);
 }
-
-// Player.prototype._nextPhase = function(message, nextPhase) {
-//     var self = this;
-//     var prevPhase = this.turn.phase;
-//     var prevStep = this.turn.step;
-//     this.addGameAction(
-//         new GameAction(
-//             message,
-//             function(callback) {
-//                 self.turn.phase = nextPhase;
-//                 self.turn.step = "";
-//                 $('.turn-phase').text(self.turn.phase);
-//                 $('.turn-step').text(self.turn.step);
-//                 callback && callback();
-//             },
-//             function(callback) {
-//                 self.turn.phase = prevPhase;
-//                 self.turn.step = prevStep;
-//                 $('.turn-phase').text(self.turn.phase);
-//                 $('.turn-step').text(self.turn.step);
-//                 callback && callback();
-//             }
-//         )
-//     );
-// }
-//
-// Player.prototype._nextStep = function(message, nextStep) {
-//     var self = this;
-//     var prevStep = this.turn.step;
-//     this.addGameAction(
-//         new GameAction(
-//             message,
-//             function(callback) {
-//                 self.turn.step = nextStep;
-//                 $('.turn-step').text(self.turn.step);
-//                 callback && callback();
-//             },
-//             function(callback) {
-//                 self.turn.step = prevStep;
-//                 $('.turn-step').text(self.turn.step);
-//                 callback && callback();
-//             }
-//         )
-//     );
-// }
 
 Player.prototype.beginningPhase = function(callback) {
     // beginningPhase
@@ -698,18 +670,16 @@ Player.prototype.endingPhase = function(callback) {
 }
 
 Player.prototype.boardWipe = function(zone, cardType) {
-    var cards = this.zones.battlefield.filter(function(card) {
-        if (!cardType) {
-            return card.isSelected();
-        }
-        return card.isType(cardType);
-    });
-    var actions = [];
-    for (var i=0; i<cards.length; i++){
-        cards[i].moveTo(zone, function(action) {
-            actions.push(action);
+    var actions = this.zones.battlefield
+        .filter(function(card) {
+            if (!cardType) {
+                return card.isSelected();
+            }
+            return card.isType(cardType);
+        })
+        .map(function(card) {
+            return card.moveTo(zone);
         });
-    }
     this.addGameActionGroup('Board wipe', actions);
 }
 

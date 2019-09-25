@@ -304,7 +304,8 @@ var CardView = Backbone.View.extend({
                 __attacking: this.model.isAttacking(),
                 __blocking: this.model.isBlocking(),
                 __selected: this.model.isSelected(),
-                __damage: this.model.getDamage()
+                __damage: this.model.getDamage(),
+                __grouped: this.model.get('__grouped')
             }
         });
 
@@ -356,6 +357,11 @@ var CardView = Backbone.View.extend({
         if (undefined != changed.__damage && this.model.isType('creature')) {
             changed.__damage >= this.model.getToughness() ?
                 this.$el.addClass('leathal-damage') : this.$el.removeClass('leathal-damage');
+        }
+
+        // group
+        if (undefined != changed.__grouped) {
+            changed.__grouped ? this.$el.hide() : this.$el.show()
         }
     },
 
@@ -422,94 +428,48 @@ var CardView = Backbone.View.extend({
         var self = this;
         e.preventDefault();
 
-        var top = e.pageY - 10;
-        var left = e.pageX - 50;
+        var inputOptions = {
+            destroy: 'Destroy',
+            exile: 'Exile',
+            hand: 'Return to hand',
+            putintolibraryshuffle: 'Put into library (shuffle)',
+            putintolibrarytop: 'Put on the top of library',
+            putintolibrarybottom: 'Put on the bottom of library'
+        };
+        this.model.isTapped() ? (inputOptions.untap = "Untap") : (inputOptions.tap = "Tap");
+        this.model.isAttacking() && (inputOptions.nocombat = "Remove from combat");
+        this.model.isType('creature') && (inputOptions.damage = "Damage");
 
-        var $menu;
-        $menu = $('<div>')
-            .addClass('dropdown-menu dropdown-menu-sm mtgcard-menu')
-            .append(
-
-                !self.model.isTapped() ?
-                    $('<a>')
-                        .addClass('dropdown-item')
-                        .text('Tap')
-                        .on('click', function(){
-                            $menu.remove();
-                            self.tap()
-                        }) :
-                    $('<a>')
-                        .addClass('dropdown-item')
-                        .text('Untap')
-                        .on('click', function(){
-                            $menu.remove();
-                            self.untap()
-                        }),
-
-                self.model.isAttacking() ?
-                    $('<a>')
-                        .addClass('dropdown-item')
-                        .text('Remove from combat')
-                        .on('click', function(){
-                            $menu.remove();
-                            self.nocombat();
-                        }) : "",
-
-                $('<a>')
-                    .addClass('dropdown-item')
-                    .text('Destroy')
-                    .on('click', function(){
-                        $menu.remove();
-                        self.moveTo(null, {zone: 'graveyard'});
-                    }),
-
-                $('<a>')
-                    .addClass('dropdown-item')
-                    .text('Exile')
-                    .on('click', function(){
-                        $menu.remove();
-                        self.moveTo(null, {zone: 'exile'});
-                    }),
-
-                $('<a>')
-                    .addClass('dropdown-item')
-                    .text('Return to Hand')
-                    .on('click', function(){
-                        $menu.remove();
-                        self.moveTo(null, {zone: 'hand'});
-                    }),
-
-                $('<a>')
-                    .addClass('dropdown-item')
-                    .text('Return to Library (Shuffle)')
-                    .on('click', function(){
-                        $menu.remove();
-                        self.putIntoLibraryShuffle();
-                    }),
-
-                $('<a>')
-                    .addClass('dropdown-item')
-                    .text('Put on the top of Library')
-                    .on('click', function(){
-                        $menu.remove();
-                        self.putIntoLibaryTop();
-                }),
-
-                $('<a>')
-                    .addClass('dropdown-item')
-                    .text('Put at the bottom of Library')
-                    .on('click', function(){
-                        $menu.remove();
-                        self.putIntoLibraryBottom();
-                }),
-
-                this.model.isType('creature') ?
-                    $('<a>')
-                        .addClass('dropdown-item')
-                        .text('Damage')
-                        .on('click', function(){
-                            $menu.remove();
-                            Swal.fire({
+        swal.fire({
+                title: 'Select Action',
+                input: 'select',
+                inputOptions: inputOptions,
+                inputPlaceholder: 'Select an action',
+                showCacnelButton: true
+            })
+            .then(function(result) {
+                if (result.value) {
+                    switch(result.value) {
+                        case 'tap':
+                            return self.tap();
+                        case 'untap':
+                            return self.untap();
+                        case 'nocombat':
+                            return self.nocombat();
+                        case 'destroy':
+                            return self.moveTo(null, {zone: 'graveyard'});
+                        case 'exile':
+                            return self.moveTo(null, {zone: 'exile'});
+                        case 'hand':
+                            return self.moveTo(null, {zone: 'hand'});
+                        case 'putintolibraryshuffle':
+                            return self.putIntoLibraryShuffle();
+                        case 'putintolibrarytop':
+                            return self.putIntoLibaryTop();
+                        case 'putintolibrarybottom':
+                            return self.putIntoLibraryBottom();
+                        case 'damage':
+                            return Swal.fire({
                                 title: "Set damage",
                                 input: "number",
                                 inputValue: self.model.getDamage()
@@ -521,19 +481,12 @@ var CardView = Backbone.View.extend({
                                     player.addGameAction(action);
                                 }
                             });
-                        }) : ""
 
-            ).css({
-                display: "block",
-                top: top,
-                left: left
-            }).addClass("show");
-
-        $('body').append($menu);
-
-        // $(window).on("click", function(e) {
-        //     $(".mtgcard-menu").removeClass("show").hide();
-        // });
+                        default:
+                            console.log(result);
+                    }
+                }
+            });
 
         return false;    // blocks default Webbrowser right click menu
     },

@@ -50,12 +50,6 @@ d3.csvParse(data, function(d) {
 
 
 
-$('#takeTurn').on('click', function(e) {
-    $('#takeTurn').prop('disabled', true);
-    player.takeTurn(function(){
-        $('#takeTurn').prop('disabled', false);
-    });
-});
 
 $('#addZombie').on('click', function(e) {
     player.resolveSpell(zombie);
