@@ -191,15 +191,19 @@ Player.prototype.addListeners = function() {
     var self = this;
 
     $('body').on('click dblclick contextmenu', function(event) {
-        console.log(event);
-        // self.zones.battlefield.each(function(card) {
-        //     card.select();
-        // });
-        //
-        // // HACK
-        // for (var i in self.groups) {
-        //     self.groups[i].$el.addClass('selected')
-        // }
+        var $elem = $(event.target);
+        if ( $elem.hasClass('mtgcard') || $elem.parent().hasClass('mtgcard') ) {
+            return;
+        }
+
+        self.zones.battlefield.each(function(card) {
+            card.unselect();
+        });
+
+        // HACK
+        for (var i in self.groups) {
+            self.groups[i].$el.removeClass('selected')
+        }
     });
 
 

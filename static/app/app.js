@@ -117,7 +117,9 @@ function chooseHorde(callback) {
     }).then(function(results) {
         if (results.value) {
             buildLibrary(deckLists[results.value], numberOfPlayers);
+            return;
         }
+        chooseHorde(callback);
     });
 }
 
