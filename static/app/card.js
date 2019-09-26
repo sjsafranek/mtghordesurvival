@@ -472,7 +472,7 @@ var CardView = Backbone.View.extend({
         };
         this.model.isTapped() ? (inputOptions.untap = "Untap") : (inputOptions.tap = "Tap");
         this.model.isAttacking() && (inputOptions.nocombat = "Remove from combat");
-        this.model.isType('creature') && (inputOptions.damage = "Damage");
+        // this.model.isType('creature') && (inputOptions.damage = "Damage");
 
         swal.fire({
                 title: 'Select Action',
@@ -504,19 +504,19 @@ var CardView = Backbone.View.extend({
                             return self.putIntoLibaryTop();
                         case 'putintolibrarybottom':
                             return self.putIntoLibraryBottom();
-                        case 'damage':
-                            return Swal.fire({
-                                title: "Set damage",
-                                input: "number",
-                                inputValue: self.model.getDamage()
-                            }).then(function(result) {
-                                if (result.value) {
-                                    var action = self.model.setDamage(
-                                        parseInt(result.value)
-                                    );
-                                    player.addGameAction(action);
-                                }
-                            });
+                        // case 'damage':
+                        //     return Swal.fire({
+                        //         title: "Set damage",
+                        //         input: "number",
+                        //         inputValue: self.model.getDamage()
+                        //     }).then(function(result) {
+                        //         if (result.value) {
+                        //             var action = self.model.setDamage(
+                        //                 parseInt(result.value)
+                        //             );
+                        //             player.addGameAction(action);
+                        //         }
+                        //     });
 
                         default:
                             console.log(result);
@@ -628,14 +628,17 @@ var CardGroupView = Backbone.View.extend({
 
     _getCards: function(callback) {
         var self = this;
+
+        var inputOptions = {};
+        for (var i=0; i<this.size()+1; i++) {
+            inputOptions[i] = i;
+        }
+
         swal.fire({
                 title: 'How many cards?',
-                input: 'range',
-                inputAttributes: {
-                    min: 0,
-                    max: this.size(),
-                    step: 1
-                }
+                input: 'select',
+                inputOptions: inputOptions,
+                inputValue: '1'
             })
             .then(function(result) {
                 if (result.value) {
