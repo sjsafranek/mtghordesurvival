@@ -480,8 +480,7 @@ var CardView = Backbone.View.extend({
                 imageUrl: this.model.getImage('normal'),
                 imageHeight: 300,
                 inputOptions: inputOptions,
-                inputPlaceholder: 'Select an action',
-                showCacnelButton: true
+                inputPlaceholder: 'Select an action'
             })
             .then(function(result) {
                 if (result.value) {
