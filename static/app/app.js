@@ -46,10 +46,31 @@ d3.csvParse(data, function(d) {
 });
 
 
+// TODO choose Horde
 
-
-
-
+swal.fire({
+        title: "Number of Players",
+        input: "select",
+        inputOptions: {
+            '45': '1',
+            '60': '2',
+            '75': '3',
+            '100': '4',
+        },
+        inputValue: '60',
+        showCancelButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then(function(result){
+        if (result.value) {
+            var n = parseInt(result.value);
+            var library = player.getZone('library');
+            while (library.length != n) {
+                var card = library.chooseRandom();
+                card.destroy();
+            }
+        }
+    });
 
 $('#addZombie').on('click', function(e) {
     player.resolveSpell(zombie);

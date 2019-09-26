@@ -99,32 +99,32 @@ var Player = function(options) {
     this.addListeners();
 
 
-    // TODO put this in the html template page
-    $.get("static/app/icons/Dot - White.svg").then(function(data){
-        $('.turn-phase-container').append(
-            $(data).find('svg').addClass('turn-phase-icon beginning-phase')
-        );
-    });
-    $.get("static/app/icons/Card - White.svg").then(function(data){
-        $('.turn-phase-container').append(
-            $(data).find('svg').addClass('turn-phase-icon precombat-main-phase')
-        );
-    });
-    $.get("static/app/icons/Sword - White.svg").then(function(data){
-        $('.turn-phase-container').append(
-            $(data).find('svg').addClass('turn-phase-icon combat-phase')
-        );
-    });
-    $.get("static/app/icons/Card - White.svg").then(function(data){
-        $('.turn-phase-container').append(
-            $(data).find('svg').addClass('turn-phase-icon postcombat-main-phase')
-        );
-    });
-    $.get("static/app/icons/Dot - White.svg").then(function(data){
-        $('.turn-phase-container').append(
-            $(data).find('svg').addClass('turn-phase-icon ending-phase')
-        );
-    });
+    // // TODO put this in the html template page
+    // $.get("static/app/icons/Dot - White.svg").then(function(data){
+    //     $('.turn-phase-container').append(
+    //         $(data).find('svg').addClass('turn-phase-icon beginning-phase')
+    //     );
+    // });
+    // $.get("static/app/icons/Card - White.svg").then(function(data){
+    //     $('.turn-phase-container').append(
+    //         $(data).find('svg').addClass('turn-phase-icon precombat-main-phase')
+    //     );
+    // });
+    // $.get("static/app/icons/Sword - White.svg").then(function(data){
+    //     $('.turn-phase-container').append(
+    //         $(data).find('svg').addClass('turn-phase-icon combat-phase')
+    //     );
+    // });
+    // $.get("static/app/icons/Card - White.svg").then(function(data){
+    //     $('.turn-phase-container').append(
+    //         $(data).find('svg').addClass('turn-phase-icon postcombat-main-phase')
+    //     );
+    // });
+    // $.get("static/app/icons/Dot - White.svg").then(function(data){
+    //     $('.turn-phase-container').append(
+    //         $(data).find('svg').addClass('turn-phase-icon ending-phase')
+    //     );
+    // });
     //.end
 }
 

@@ -332,7 +332,6 @@ var CardView = Backbone.View.extend({
 
     joinGroup: function(){
         if (!player) return;
-        console.log('JOIN GROUP!!', this.model.md5());
         var group = player.getGroup(this.model);
         this.group &&
             this.group.hasCard(this.model) &&
@@ -469,6 +468,8 @@ var CardView = Backbone.View.extend({
         swal.fire({
                 title: 'Select Action',
                 input: 'select',
+                imageUrl: this.model.getImage('normal'),
+                imageHeight: 300,
                 inputOptions: inputOptions,
                 inputPlaceholder: 'Select an action',
                 showCacnelButton: true
@@ -695,7 +696,8 @@ var CardGroupView = Backbone.View.extend({
                 input: 'select',
                 inputOptions: inputOptions,
                 inputPlaceholder: 'Select an action',
-                showCacnelButton: true
+                imageUrl: this.getCard().getImage('normal'),
+                imageHeight: 300
             })
             .then(function(result) {
                 if (result.value) {
