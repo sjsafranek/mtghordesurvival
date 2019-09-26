@@ -174,6 +174,7 @@ Player.prototype.undo = function() {
         return;
     }
     this.gameActions[this.currentGameAction].undo();
+    toast('Undo: ' + this.gameActions[this.currentGameAction].message);
     this.currentGameAction--;
 };
 
