@@ -7,11 +7,15 @@ body {
     text-align: center;
 }
 
-.turn-phase-icon path, .turn-phase-icon rect {
+.turn-phase-icon path,
+.turn-phase-icon rect
+{
     transition: fill 0.3s linear;
 }
 
-.turn-phase-icon.current-phase path, .turn-phase-icon.current-phase rect {
+.turn-phase-icon.current-phase path,
+.turn-phase-icon.current-phase rect
+{
     fill: #6000D6;
 }
 
@@ -85,7 +89,7 @@ body {
 }
 
 .selected {
-    box-shadow: 0 0 4px 2px #337ab7;
+    box-shadow: 0 0 4px 2px #98FB98;
 }
 
 .zone-section {

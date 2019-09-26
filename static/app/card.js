@@ -38,8 +38,8 @@ var Card = Backbone.Model.extend({
             this.get('__damage'),
             this.get('__controller'),
             this.get('__owner'),
-            this.get('__summoningSickness'),
-            this.get('__selected')
+            this.get('__summoningSickness')
+            // this.get('__selected')
             // this.get('__grouped')
         ]
     },
@@ -330,13 +330,17 @@ var CardView = Backbone.View.extend({
         'mouseover': 'mouseover'
     },
 
+    // HACK
     joinGroup: function(){
         if (!player) return;
         var group = player.getGroup(this.model);
+        if (this.group && this.group == group) {
+            // this.model.isSelected() ? this.group.unselectCards() : this.group.selectCards();
+            return;
+        }
         this.group &&
             this.group.hasCard(this.model) &&
-                this.group != group &&
-                    this.group.removeCard(this.model);
+                this.group.removeCard(this.model);
         this.group = group;
         group.addCard(this.model);
     },
@@ -406,8 +410,11 @@ var CardView = Backbone.View.extend({
     },
 
     toggleTapped: function(event) {
+        event.preventDefault();
         this.isTapped() ?
-            player.addGameAction(this.model.untap()) : player.addGameAction(this.model.tap());
+            player.addGameAction(this.model.untap()) :
+            player.addGameAction(this.model.tap());
+        this.model.select();
     },
 
     tap: function(event) {
@@ -424,21 +431,23 @@ var CardView = Backbone.View.extend({
 
     selectCard: function(event){
         event.preventDefault();
-        $(".mtgcard-menu").removeClass("show").hide();  // remove contextMenu
+        var isSelected = this.model.isSelected();
         if (!event.ctrlKey) {
+            player.unselectAll();
             this.model.select();
+            return
         }
-        this.model.toggleSelect();
+        isSelected ? this.model._unselect() : this.model._select();
     },
 
     putIntoLibaryTop: function(){
         var library = player.getZone('library');
-        player.addGameAction(library.addTop(self.model));
+        player.addGameAction(library.addTop(this.model));
     },
 
     putIntoLibraryBottom: function(){
         var library = player.getZone('library');
-        player.addGameAction(library.addBottom(self.model));
+        player.addGameAction(library.addBottom(this.model));
     },
 
     putIntoLibraryShuffle: function(){
@@ -554,11 +563,41 @@ var CardGroupView = Backbone.View.extend({
         this._dblclick = function(e) {
             self.dblclick(e);
         }
+        this._click = function(e) {
+            self.click(e);
+        }
         this.$el.on('contextmenu', this._oncontextmenu);
         this.$el.on('dblclick', this._dblclick);
+        this.$el.on('click', this._click);
     },
 
-    dblclick: function(e) {
+    click: function(event){
+        var isSelected = this.getCard().isSelected();
+        if (!event.ctrlKey) {
+            player.unselectAll();
+            this.selectCards();
+            return
+        }
+        isSelected ?
+            this.unselectCards() : this.selectCards()
+    },
+
+    selectCards: function() {
+        this.$el.addClass('selected');
+        this._getAllCards().map(function(card) {
+            !card.isSelected() && card._select();
+        });
+    },
+
+    unselectCards: function() {
+        this.$el.removeClass('selected');
+        this._getAllCards().map(function(card) {
+            card.isSelected() && card._unselect();
+        });
+    },
+
+    dblclick: function(event) {
+        event.preventDefault();
         if (this.getCard().isTapped()) {
             var actions = this._getAllCards().map(function(card){
                 return card.untap();
@@ -570,6 +609,7 @@ var CardGroupView = Backbone.View.extend({
             });
             player.addGameActionGroup("Tap", actions);
         }
+        this.selectCards(event);
     },
 
     getCard: function(i) {

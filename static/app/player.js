@@ -309,9 +309,13 @@ Player.prototype.addListeners = function() {
         // ctrl+a
         if (e.ctrlKey && 65 == e.which) {
             e.preventDefault();
-            player.zones.battlefield.each(function(card) {
+            self.zones.battlefield.each(function(card) {
                 card.select();
             });
+            // HACK
+            for (var i in self.groups) {
+                self.groups[i].$el.addClass('selected')
+            }
         }
 
 
@@ -801,6 +805,12 @@ Player.prototype.getGroup = function(card) {
         }
     }
     return this.groups[_hsh];
+}
+
+Player.prototype.unselectAll = function() {
+    player.getZone('battlefield').each(function(card) {
+        card.unselect();
+    });
 }
 
 // Player.prototype._groupPermanents = function() {
