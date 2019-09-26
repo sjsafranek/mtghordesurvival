@@ -244,7 +244,7 @@ body {
 
 
 #gameLog {
-    color: black;
+    color: rgb(255, 255, 255);
     font: 0.6rem Inconsolata, monospace;
     padding-left: 12px;
     padding-right: 12px;
