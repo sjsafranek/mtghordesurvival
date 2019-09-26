@@ -190,6 +190,19 @@ Player.prototype.redo = function() {
 Player.prototype.addListeners = function() {
     var self = this;
 
+    $('body').on('click dblclick contextmenu', function(event) {
+        console.log(event);
+        // self.zones.battlefield.each(function(card) {
+        //     card.select();
+        // });
+        //
+        // // HACK
+        // for (var i in self.groups) {
+        //     self.groups[i].$el.addClass('selected')
+        // }
+    });
+
+
     var collectOptions = function(zone) {
         var inputOptions = {};
         zone.forEach(function(card) {
@@ -312,7 +325,7 @@ Player.prototype.addListeners = function() {
             self.zones.battlefield.each(function(card) {
                 card.select();
             });
-            
+
             // HACK
             for (var i in self.groups) {
                 self.groups[i].$el.addClass('selected')

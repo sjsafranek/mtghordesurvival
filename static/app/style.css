@@ -34,6 +34,7 @@ body {
 .mtgcard img {
     width: 100%;
     height:auto;
+    border-radius: 6px;
 }
 
 .mtgcard .counter-container {
@@ -266,3 +267,23 @@ body {
         opacity: 0;
     }
 }
+
+
+
+
+
+
+
+
+/*
+
+.progress-bar {
+  width: 100%;
+  background-color: grey;
+}
+
+.progress {
+  width: 1%;
+  height: 30px;
+  background-color: green;
+}*/
