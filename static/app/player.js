@@ -461,7 +461,7 @@ Player.prototype.pause = function() {
         this._reject("Pause game");
         $('.continue').remove();
         var $elem = $('<button>', {title:'Continue'})
-            .addClass("btn btn-lg btn-primary col-md-4 continue")
+            .addClass("btn btn-lg btn-primary col-md-2 ml-2 mr-2 continue")
             .append(
                 $('<i>').addClass('fas fa-forward')
             )
@@ -470,6 +470,7 @@ Player.prototype.pause = function() {
                 self.continue();
             });
         $('#game-controls-container').append($elem);
+        $elem.get(0).focus();
     }
 }
 
@@ -555,7 +556,7 @@ Player.prototype.continue = function(callback) {
 Player.prototype._passPriority = function(callback) {
     $('.continue').remove();
     var $elem = $('<button>', {title:'Continue'})
-        .addClass("btn btn-lg btn-primary col-md-4 continue")
+        .addClass("btn btn-lg btn-primary col-md-2 ml-2 mr-2 continue")
         .append(
             $('<i>').addClass('fas fa-forward')
         )

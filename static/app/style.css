@@ -29,6 +29,8 @@ body {
     transition-duration: 0.3s;
     transition-property: transform;
     cursor: pointer;
+    margin-right: 2px;
+    margin-left: 2px;
 }
 
 .mtgcard img {

@@ -37,13 +37,19 @@
                                     <rect fill="#FFF" transform="rotate(-45 23.036 23.036)" x="20.536" y="20.536" width="5" height="5" fill-rule="evenodd"/>
                                 </svg>
                             </div>
-                            <button id="addZombie" class="btn btn-sm btn-danger ml-2" title="Add Zombie">
-                                <i class="fas fa-plus"></i>
-                            </button>
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div id="game-controls-container" class="row justify-content-md-center mt-4 mb-4">
+                        <button id="addZombie" class="btn btn-lg btn-danger col-md-2 ml-2 mr-2" title="Add Zombie">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button id="nextTurn" class="btn btn-lg btn-primary col-md-2 ml-2 mr-2" title="Next Turn">
+                            <i class="fas fa-forward"></i>
+                        </button>
+                    </div>
+
+                    <div class="row justify-content-md-center">
                         <div class="col-md-2 zone-section zoneHand">
                             <label class="m-0" ><i class="fas fa-eye"></i> Hand: </label><span class="handCount"></span>
                         </div>
@@ -75,12 +81,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div id="game-controls-container" class="row justify-content-md-center">
-                        <button id="nextTurn" class="btn btn-lg btn-primary col-md-4 btn-block" title="Next Turn">
-                            <i class="fas fa-forward"></i>
-                        </button>
                     </div>
 
                 </main>
