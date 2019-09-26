@@ -312,6 +312,7 @@ Player.prototype.addListeners = function() {
             self.zones.battlefield.each(function(card) {
                 card.select();
             });
+            
             // HACK
             for (var i in self.groups) {
                 self.groups[i].$el.addClass('selected')
