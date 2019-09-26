@@ -14,7 +14,7 @@ var Player = function(options) {
         onDrawStep: function(game, data) {
             if (data.card) {
                 var card = data.card;
-                while(game.zones.library.length && -1 != ['Zombie', 'Zombie Giant'].indexOf(card.getName())) {
+                while(game.zones.library.length && card.isType('Token')) {
                     card = game.drawCard();
                 }
             }
