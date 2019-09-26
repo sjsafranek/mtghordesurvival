@@ -184,6 +184,7 @@ Player.prototype.redo = function() {
     }
     this.currentGameAction++;
     this.gameActions[this.currentGameAction].do();
+    toast('Redo: ' + this.gameActions[this.currentGameAction].message);
 }
 
 Player.prototype.addListeners = function() {
