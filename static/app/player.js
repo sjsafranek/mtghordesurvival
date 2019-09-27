@@ -741,6 +741,7 @@ Player.prototype.castSpell = function(card, callback) {
     return Swal.fire({
         title: card.getName(),
         imageUrl: card.getImage(),
+        imageClass: 'mtg-card-image',
         showCancelButton: true,
         focusConfirm: false,
         confirmButtonText: 'Resolve',
