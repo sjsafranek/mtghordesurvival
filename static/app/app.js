@@ -107,9 +107,11 @@ function chooseHorde(callback) {
         inputOptions[i] = i;
     }
     Swal.fire({
-        title: 'Choose a Horde',
+        // title: 'Choose a Horde',
+        // customClass: 'game-choose-horde-container',
         imageUrl: 'static/app/icons/XLarge/Hand Logo.svg',
-        imageHeight: 300,
+        // imageHeight: 300,
+        imageClass: 'game-logo-swal',
         input: 'select',
         inputOptions: inputOptions,
         inputPlaceholder: 'Choose a Horde',

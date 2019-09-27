@@ -97,35 +97,6 @@ var Player = function(options) {
 
     this.updateCounts();
     this.addListeners();
-
-
-    // // TODO put this in the html template page
-    // $.get("static/app/icons/Dot - White.svg").then(function(data){
-    //     $('.turn-phase-container').append(
-    //         $(data).find('svg').addClass('turn-phase-icon beginning-phase')
-    //     );
-    // });
-    // $.get("static/app/icons/Card - White.svg").then(function(data){
-    //     $('.turn-phase-container').append(
-    //         $(data).find('svg').addClass('turn-phase-icon precombat-main-phase')
-    //     );
-    // });
-    // $.get("static/app/icons/Sword - White.svg").then(function(data){
-    //     $('.turn-phase-container').append(
-    //         $(data).find('svg').addClass('turn-phase-icon combat-phase')
-    //     );
-    // });
-    // $.get("static/app/icons/Card - White.svg").then(function(data){
-    //     $('.turn-phase-container').append(
-    //         $(data).find('svg').addClass('turn-phase-icon postcombat-main-phase')
-    //     );
-    // });
-    // $.get("static/app/icons/Dot - White.svg").then(function(data){
-    //     $('.turn-phase-container').append(
-    //         $(data).find('svg').addClass('turn-phase-icon ending-phase')
-    //     );
-    // });
-    //.end
 }
 
 Player.prototype.getZone = function(name) {
@@ -431,6 +402,8 @@ Player.prototype.updateCounts = function() {
     $('.graveyardCount').text(this.zones.graveyard.length);
     $('.exileCount').text(this.zones.exile.length);
     $('.battlefieldCount').text(this.zones.battlefield.length);
+
+    $('.horde-remaining-count').text(this.zones.library.length);
 }
 
 Player.prototype.takeTurn = function(callback) {
