@@ -164,8 +164,10 @@ body {
     -webkit-text-stroke: 2px rgb(255,255,255,1.0);
     font-size: 48px;
     animation: attacking-animation 2s infinite;
-    padding-top: 30%;
-    padding-left: 20%;
+    /*padding-top: 30%;*/
+    /*padding-left: 20%;*/
+    position: absolute;
+    right: 12px;
 }
 
 @-webkit-keyframes attacking-animation {
