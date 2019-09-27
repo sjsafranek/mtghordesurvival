@@ -100,21 +100,23 @@ body {
 
 .zone-section {
     cursor: pointer;
-    transition: color 0.3s linear;
-    border-style: dashed;
+    /*transition: color 0.3s linear;*/
+    /*border-style: dashed;
     border-color: white;
-    border-width: 2px;
-    transition: border-color 0.3s linear;
+    border-width: 2px;*/
+    /*transition: border-color 0.3s linear;*/
 }
 
 .zone-section:hover {
-    color: #0088cc !important;
+    color: #6000D6 !important;
 }
 
+
 .draggable-over {
-    border-style: dashed;
-    border-width: 2px;
-    border-color: lightgrey;
+    color: #6000D6;
+    /*border-style: dashed;*/
+    /*border-width: 2px;*/
+    /*border-color: lightgrey;*/
 }
 
 
