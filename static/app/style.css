@@ -36,10 +36,14 @@ body {
     margin-left: 2px;
 }
 
+.mtg-card-image {
+    border-radius: 8px;
+}
+
 .mtgcard img {
     width: 100%;
     height:auto;
-    border-radius: 6px;
+    border-radius: 8px;
 }
 
 .mtgcard .counter-container {
