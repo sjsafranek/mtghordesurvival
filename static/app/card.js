@@ -327,7 +327,13 @@ var CardView = Backbone.View.extend({
         'tap': 'tap',
         'untap': 'untap',
         'destroy': 'destroy',
-        'mouseover': 'mouseover'
+        'mouseover': 'mouseover',
+        'click .mtg-card-destroy-btn': 'destroyCard'
+    },
+
+    destroyCard: function(event) {
+        event.preventDefault();
+        this.moveTo(null, {zone: 'graveyard'});
     },
 
     // HACK
@@ -865,12 +871,20 @@ var CardGroupView = Backbone.View.extend({
     },
 
     _group: function() {
+        var self = this;
         for (var cid in this.cards) {
             this.cards[cid].set('__grouped', true);
         }
         this.$el
             .empty()
             .append(
+                $('<span>')
+                    .addClass('mtg-card-destroy-btn badge badge-pill badge-dark')
+                    .text('X')
+                    .on('click', function() {
+                        var graveyard = player.getZone('graveyard');
+                        player.addGameAction(self.getCard().moveTo(graveyard));
+                    }),
                 $('<span>')
                     .addClass('mtg-card-count-container')
                     .append(this.size()),
