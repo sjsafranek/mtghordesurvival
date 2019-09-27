@@ -345,6 +345,18 @@ var CardView = Backbone.View.extend({
         group.addCard(this.model);
     },
 
+    _attack: function() {
+        this.$el.find('.mtg-card-status-container').append(
+            $('<i>').addClass('fas fa-fist-raised attacking')
+        );
+    },
+
+    _nocombat: function() {
+        var $elem = this.$el.find('.mtg-card-status-container');
+        $elem.find('.attacking').remove();
+        $elem.find('.blocking').remove();
+    },
+
     onChange: function(event) {
         var self = this;
 
@@ -358,9 +370,10 @@ var CardView = Backbone.View.extend({
                 this.$el.addClass('tapped') : this.$el.removeClass('tapped');
         }
 
+
         // combat
         // allow for tap animation to complete
-        undefined != changed.__attacking && changed.__attacking && this.$el.addClass('attacking');
+        undefined != changed.__attacking && changed.__attacking && this._attack();
         undefined != changed.__attacking && changed.__attacking && setTimeout(function(){
             $('.combatZone').append(self.$el);
         },300);
@@ -368,9 +381,10 @@ var CardView = Backbone.View.extend({
         // remove from combat
         var nocombat = function() {
            $('.creatures').append(self.$el);
-           self.$el.removeClass('attacking');
+            self._nocombat();
        }
         undefined != changed.__attacking && !changed.__attacking && nocombat();
+
 
         // selected
         if (undefined != changed.__selected) {
@@ -778,6 +792,18 @@ var CardGroupView = Backbone.View.extend({
         return Object.keys(this.cards).length;
     },
 
+    _attack: function() {
+        this.$el.find('.mtg-card-status-container').append(
+            $('<i>').addClass('fas fa-fist-raised attacking')
+        );
+    },
+
+    _nocombat: function() {
+        var $elem = this.$el.find('.mtg-card-status-container');
+        $elem.find('.attacking').remove();
+        $elem.find('.blocking').remove();
+    },
+
     addCard: function(card) {
         this.cards[card.cid] = card;
         if (1 < this.size()) {
@@ -792,7 +818,7 @@ var CardGroupView = Backbone.View.extend({
 
         // combat
         // allow for tap animation to complete
-        card.isAttacking() ? this.$el.addClass('attacking') : this.$el.removeClass('attacking');
+        card.isAttacking() ? this._attack() : this._nocombat();
         card.isAttacking() ? $('.combatZone').append(this.$el) : $('.creatures').append(this.$el);
         card.isSelected() ?
             this.$el.addClass('selected') : this.$el.removeClass('selected');
@@ -848,6 +874,8 @@ var CardGroupView = Backbone.View.extend({
                 $('<span>')
                     .addClass('mtg-card-count-container')
                     .append(this.size()),
+                $('<span>')
+                    .addClass('mtg-card-status-container'),
                 $('<span>')
                     .addClass('mtg-card-combat-stats-container')
                     .append(

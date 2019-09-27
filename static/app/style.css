@@ -33,9 +33,11 @@ body {
     margin-left: 2px;
 }
 
+/*
 .mtgcard:hover {
-    color: #6000D6;
+    box-shadow: 0 0 0 4px rgb(96,0,214, 0.5);
 }
+*/
 
 .mtg-card-image {
     border-radius: 8px;
@@ -158,15 +160,68 @@ body {
 
 
 .attacking {
-    box-shadow: 0 0 0 rgba(255, 0, 0, 0.6);
-    animation: pulse 2s infinite;
+    color: rgb(138,3,3,1.0);
+    -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+    font-size: 48px;
+    animation: attacking-animation 2s infinite;
+    padding-top: 30%;
+    padding-left: 20%;
 }
 
+@-webkit-keyframes attacking-animation {
+    0% {
+		color: rgb(138,3,3,1.0);
+        -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+	}
+	25% {
+		color: rgb(138,3,3,0.75);
+        -webkit-text-stroke: 1px rgb(255,255,255,0.75);
+	}
+	50% {
+		color: rgb(138,3,3,0.5);
+        -webkit-text-stroke: 0.25px rgb(255,255,255,0.5);
+	}
+    75% {
+		color: rgb(138,3,3,0.75);
+        -webkit-text-stroke: 1px rgb(255,255,255,0.75);
+    }
+    100% {
+		color: rgb(138,3,3,1.0);
+        -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+    }
+}
+@keyframes attacking-animation {
+    0% {
+		color: rgb(138,3,3,1.0);
+        -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+	}
+	25% {
+		color: rgb(138,3,3,0.75);
+        -webkit-text-stroke: 1px rgb(255,255,255,0.75);
+	}
+	50% {
+		color: rgb(138,3,3,0.5);
+        -webkit-text-stroke: 0.25px rgb(255,255,255,0.5);
+	}
+    75% {
+		color: rgb(138,3,3,0.75);
+        -webkit-text-stroke: 1px rgb(255,255,255,0.75);
+    }
+    100% {
+		color: rgb(138,3,3,1.0);
+        -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+    }
+}
+
+
+
+
+/*
 .attacking:hover {
   animation: none;
-}
+}*/
 
-
+/*
 @-webkit-keyframes pulse {
 	0% {
 		-webkit-box-shadow: 0 0 0 0px rgba(255, 0, 0, .6), 0 0 0 2px rgba(255, 0, 0, .6);
@@ -198,7 +253,7 @@ body {
 		-moz-box-shadow: 0 0 0 6px rgba(255, 0, 0, 0), 0 0 0 8px rgba(255, 0, 0, 0);
 		box-shadow: 0 0 0 6px rgba(255, 0, 0, 0), 0 0 0 8px rgba(255, 0, 0, 0);
 	}
-}
+}*/
 
 
 
