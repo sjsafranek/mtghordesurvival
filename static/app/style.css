@@ -1,6 +1,6 @@
 body {
     background-color: black;
-    color: white;
+    color: #e1e1e1;
 
     /*font-family: 'Luckiest+Guy', serif;*/
     font-family: 'Zombie Guts', serif;
@@ -26,14 +26,15 @@ body {
 .mtgcard {
     display: inline-block;
     margin: 1px;
-    /*border: 4px solid #ffffff;*/
-    /*border-radius: 8px;*/
-    /*transition: border-color 0.3s linear;*/
     transition-duration: 0.3s;
     transition-property: transform;
     cursor: pointer;
     margin-right: 2px;
     margin-left: 2px;
+}
+
+.mtgcard:hover {
+    color: #6000D6;
 }
 
 .mtg-card-image {
@@ -50,7 +51,7 @@ body {
     position: absolute;
 }
 
-.mtgcard .card-text-container {
+.mtgcard .mtg-card-status-container {
     position: absolute;
     z-index: 9;
     background-color: rgba(256, 256, 256, 0.0);
@@ -62,29 +63,28 @@ body {
     transition: background-color 0.3s linear;
 }
 
-.mtgcard .card-count-container {
+.mtgcard .mtg-card-count-container {
     position: absolute;
     z-index: 10;
-    color: white;
+    /*color: white;*/
     font-weight: bold;
     font-size: 32px;
-    -webkit-text-fill-color: white; /* Will override color (regardless of order) */
+    /*-webkit-text-fill-color: white; /* Will override color (regardless of order) */*/
     -webkit-text-stroke-width: 0.75px;
     -webkit-text-stroke-color: black;
     left: 12px;
-    /*bottom: 12px;*/
     vertical-align: middle;
 }
 
 
-.mtgcard.leathal-damage .card-text-container {
+/*.mtgcard.leathal-damage .card-text-container {
     background-color: rgba(256, 0, 0, 0.6);
-}
+}*/
 
-.mtgcard .stats-container {
+.mtgcard .mtg-card-combat-stats-container {
     position: absolute;
     z-index: 10;
-    color: white;
+    /*color: white;*/
     font-weight: bold;
     font-size: 20px;
     -webkit-text-fill-color: white; /* Will override color (regardless of order) */

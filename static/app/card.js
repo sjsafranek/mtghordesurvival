@@ -378,11 +378,11 @@ var CardView = Backbone.View.extend({
                 this.$el.addClass('selected') : this.$el.removeClass('selected');
         }
 
-        // damage
-        if (undefined != changed.__damage && this.model.isType('creature')) {
-            changed.__damage >= this.model.getToughness() ?
-                this.$el.addClass('leathal-damage') : this.$el.removeClass('leathal-damage');
-        }
+        // // damage
+        // if (undefined != changed.__damage && this.model.isType('creature')) {
+        //     changed.__damage >= this.model.getToughness() ?
+        //         this.$el.addClass('leathal-damage') : this.$el.removeClass('leathal-damage');
+        // }
 
         // group
         if (undefined != changed.__grouped) {
@@ -431,13 +431,7 @@ var CardView = Backbone.View.extend({
 
     selectCard: function(event){
         event.preventDefault();
-        var isSelected = this.model.isSelected();
-        if (!event.ctrlKey) {
-            player.unselectAll();
-            this.model.select();
-            return
-        }
-        isSelected ? this.model._unselect() : this.model._select();
+        this.model.toggleSelect();
     },
 
     putIntoLibaryTop: function(){
@@ -572,14 +566,8 @@ var CardGroupView = Backbone.View.extend({
     },
 
     click: function(event){
-        var isSelected = this.getCard().isSelected();
-        if (!event.ctrlKey) {
-            player.unselectAll();
-            this.selectCards();
-            return
-        }
-        isSelected ?
-            this.unselectCards() : this.selectCards()
+        this.getCard().isSelected() ?
+            this.unselectCards() : this.selectCards();
     },
 
     selectCards: function() {
@@ -817,7 +805,7 @@ var CardGroupView = Backbone.View.extend({
         } else {
             this._ungroup();
         }
-        this.$el.find('.card-count-container')
+        this.$el.find('.mtg-card-count-container')
             .empty()
             .append(this.size());
     },
@@ -858,15 +846,16 @@ var CardGroupView = Backbone.View.extend({
             .empty()
             .append(
                 $('<span>')
-                    .addClass('card-count-container')
+                    .addClass('mtg-card-count-container')
                     .append(this.size()),
                 $('<span>')
-                    .addClass('stats-container')
+                    .addClass('mtg-card-combat-stats-container')
                     .append(
                         this.getPower() + ' / ' + this.getToughness()
                     ),
                 $('<img>').attr('src', this.getImage())
             );
+
         this.$el.show();
     },
 
