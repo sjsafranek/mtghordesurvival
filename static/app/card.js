@@ -419,10 +419,23 @@ var CardView = Backbone.View.extend({
 
     destroy: function(event, args) {
         if (args.cid != this.model.cid) return;
+
+        var isVisible = this.$el.is(':visible');
+        if (!isVisible) {
+            this.remove();
+        }
         this.model.set('__grouped', false);
         this.model.off('change', this.onChange, this);
         this.group && this.group.removeCard(this.model);
-        this.remove();
+
+        if (!isVisible) {
+            return;
+        }
+
+        var self = this;
+        this.$el.hide('explode', { "pieces":25 }, 600, function() {
+            self.remove();
+        });
     },
 
     isTapped: function() {
