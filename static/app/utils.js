@@ -18,7 +18,9 @@ var GameUtils = {
                 battlefield: 'battlefield'
             },
             inputPlaceholder: 'Select a zone',
-            showCancelButton: true
+            showCancelButton: false,
+            allowEscapeKey: false,
+            allowOutsideClick: false
         }
 
         if (opts.exclude) {

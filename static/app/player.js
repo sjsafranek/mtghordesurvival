@@ -746,6 +746,8 @@ Player.prototype.castSpell = function(card, callback) {
         focusConfirm: false,
         confirmButtonText: 'Resolve',
         cancelButtonText: 'Counter',
+        allowEscapeKey: false,
+        allowOutsideClick: false,
         animation: false
     }).then(function(result){
         if (!result.value) {
