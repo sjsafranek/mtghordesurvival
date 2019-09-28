@@ -120,6 +120,7 @@ function chooseHorde(callback) {
         imageClass: 'game-logo-swal',
         input: 'select',
         inputOptions: inputOptions,
+        inputValue: Object.keys(inputOptions)[0],
         inputPlaceholder: 'Choose a Horde',
         showCancelButton: false,
         allowOutsideClick: false,

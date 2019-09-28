@@ -517,6 +517,7 @@ var CardView = Backbone.View.extend({
                 imageHeight: 300,
                 imageClass: 'mtg-card-image',
                 inputOptions: inputOptions,
+                inputValue: 'destroy',
                 inputPlaceholder: 'Select an action'
             })
             .then(function(result) {
@@ -780,6 +781,7 @@ var CardGroupView = Backbone.View.extend({
                 title: 'Select Action',
                 input: 'select',
                 inputOptions: inputOptions,
+                inputValue: 'destroy',
                 inputPlaceholder: 'Select an action',
                 imageUrl: this.getCard().getImage('normal'),
                 imageClass: 'mtg-card-image',
