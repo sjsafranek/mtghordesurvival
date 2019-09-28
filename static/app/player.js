@@ -111,7 +111,7 @@ Player.prototype.addGameAction = function(action) {
         debugger;
     }
     action.do();
-    toast(action.message);
+    // toast(action.message);
     this.gameActions.push(action);
     this.currentGameAction = this.gameActions.length - 1;
 }
@@ -145,7 +145,7 @@ Player.prototype.undo = function() {
         return;
     }
     this.gameActions[this.currentGameAction].undo();
-    toast('Undo: ' + this.gameActions[this.currentGameAction].message);
+    // toast('Undo: ' + this.gameActions[this.currentGameAction].message);
     this.currentGameAction--;
 };
 
@@ -155,7 +155,7 @@ Player.prototype.redo = function() {
     }
     this.currentGameAction++;
     this.gameActions[this.currentGameAction].do();
-    toast('Redo: ' + this.gameActions[this.currentGameAction].message);
+    // toast('Redo: ' + this.gameActions[this.currentGameAction].message);
 }
 
 Player.prototype.addListeners = function() {
@@ -236,7 +236,7 @@ Player.prototype.addListeners = function() {
                 } else {
                     self.zones[newZone].add(card);
                 }
-                toast(card.getName() + ' put into the ' + newZone + ' from the ' + oldZone);
+                // toast(card.getName() + ' put into the ' + newZone + ' from the ' + oldZone);
                 self.updateCounts();
             }
         });
@@ -702,7 +702,7 @@ Player.prototype.untapSelected = function() {
 
 Player.prototype.drawCard = function() {
     if (!this.zones.library.length) {
-        toast('No cards in library!');
+        // toast('No cards in library!');
         return;
     }
     var card = this.getZone('library').draw(this.getZone('hand'));
@@ -736,7 +736,7 @@ Player.prototype.getCardsByType = function(cardType, zone) {
 
 Player.prototype.castSpell = function(card, callback) {
     var self = this;
-    toast('Cast ' + card.getName());
+    // toast('Cast ' + card.getName());
 
     return Swal.fire({
         title: card.getName(),
@@ -767,7 +767,7 @@ Player.prototype.castSpell = function(card, callback) {
 Player.prototype.resolveSpell = function(card, callback) {
     var self = this;
 
-    toast(card.getName() + ' resolved');
+    // toast(card.getName() + ' resolved');
 
     card.resetState();
     if (card.isPermanent()) {

@@ -274,6 +274,15 @@ var Card = Backbone.Model.extend({
         callback && callback();
     },
 
+    // _moveTo: function(zone, callback) {
+    //     var oldZone = this.collection;
+    //     zone.add(this);
+    //     if (oldZone) {
+    //         oldZone.remove(this);
+    //     }
+    //     callback && callback();
+    // },
+
     moveTo: function(newZone) {
         var self = this;
         var oldZone = this.collection;
@@ -328,7 +337,7 @@ var CardView = Backbone.View.extend({
         'untap': 'untap',
         'destroy': 'destroy',
         'mouseover': 'mouseover',
-        'click .mtg-card-destroy': 'destroyCard'
+        'click .mtg-card-destroy-btn': 'destroyCard'
     },
 
     destroyCard: function(event) {
@@ -352,15 +361,12 @@ var CardView = Backbone.View.extend({
     },
 
     _attack: function() {
-        this.$el.find('.mtg-card-status-container').append(
-            $('<i>').addClass('fas fa-fist-raised attacking')
-        );
+        this.$el.addClass('attacking');
     },
 
     _nocombat: function() {
-        var $elem = this.$el.find('.mtg-card-status-container');
-        $elem.find('.attacking').remove();
-        $elem.find('.blocking').remove();
+        this.$el.removeClass('attacking');
+        this.$el.removeClass('blocking');
     },
 
     onChange: function(event) {
@@ -566,7 +572,9 @@ var CardView = Backbone.View.extend({
     },
 
     render: function(){
+        // this.$el.hide();
         this.$el.html(this.template(this.model.attributes));
+        // undefined != this.group && this.$el.fadeIn();
         return this;
     }
 
@@ -823,15 +831,12 @@ var CardGroupView = Backbone.View.extend({
     },
 
     _attack: function() {
-        this.$el.find('.mtg-card-status-container').append(
-            $('<i>').addClass('fas fa-fist-raised attacking')
-        );
+        this.$el.addClass('attacking');
     },
 
     _nocombat: function() {
-        var $elem = this.$el.find('.mtg-card-status-container');
-        $elem.find('.attacking').remove();
-        $elem.find('.blocking').remove();
+        this.$el.removeClass('attacking');
+        this.$el.removeClass('blocking');
     },
 
     addCard: function(card) {
@@ -852,6 +857,9 @@ var CardGroupView = Backbone.View.extend({
         card.isAttacking() ? $('.combatZone').append(this.$el) : $('.creatures').append(this.$el);
         card.isSelected() ?
             this.$el.addClass('selected') : this.$el.removeClass('selected');
+        this.$el.find('.mtg-card-destroy-btn').on('dblclick', function(event) {
+            event.stopPropagation();
+        });
     },
 
     removeCard: function(card) {
@@ -869,12 +877,6 @@ var CardGroupView = Backbone.View.extend({
     hasCard: function(card) {
         return this.cards[card.cid] ? true : false;
     },
-
-    // destroy: function(){
-    //     this._ungroup();
-    //     this.$el.off('contextmenu', this._oncontextmenu);
-    //     this.remove();
-    // },
 
     getPower: function() {
         for (var cid in this.cards) {
@@ -901,37 +903,13 @@ var CardGroupView = Backbone.View.extend({
         }
 
         if (!this._rendered) {
-            debugger;
             this.$el.html(this.template(this.getCard().attributes));
             this._destroyCard = function(e) {
                 self.destroyCard(e);
             }
-            this.$el.find('.mtg-card-destroy').on('click', this._destroyCard);
+            this.$el.find('.mtg-card-destroy-btn').on('click', this._destroyCard);
             this._rendered = true;
         }
-        // debugger;
-        // this.$el
-        //     .empty()
-        //     .append(
-        //         $('<span>')
-        //             .addClass('mtg-card-destroy-btn badge badge-pill badge-dark')
-        //             .text('X')
-        //             .on('click', function() {
-        //                 var graveyard = player.getZone('graveyard');
-        //                 player.addGameAction(self.getCard().moveTo(graveyard));
-        //             }),
-        //         $('<span>')
-        //             .addClass('mtg-card-count-container')
-        //             .append(this.size()),
-        //         $('<span>')
-        //             .addClass('mtg-card-status-container'),
-        //         $('<span>')
-        //             .addClass('mtg-card-combat-stats-container')
-        //             .append(
-        //                 this.getPower() + ' / ' + this.getToughness()
-        //             ),
-        //         $('<img>').attr('src', this.getImage())
-        //     );
 
         this.$el.find('.mtg-card-count').empty().append(this.size());
 
@@ -946,9 +924,5 @@ var CardGroupView = Backbone.View.extend({
             .empty()
             .append(this.size());
         (2 > this.size()) && this.$el.hide();
-    } //,
-    // render: function(){
-    //     this.$el.html(this.template(this.getCard().attributes));
-    //     return this;
-    // }
+    }
 });

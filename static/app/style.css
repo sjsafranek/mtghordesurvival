@@ -1,8 +1,6 @@
 body {
     background-color: black;
     color: #e1e1e1;
-
-    /*font-family: 'Luckiest+Guy', serif;*/
     font-family: 'Zombie Guts', serif;
 }
 
@@ -34,94 +32,24 @@ body {
     width: auto; /* support for svg cards */
 }
 
-/*
-.mtgcard:hover {
-    box-shadow: 0 0 0 4px rgb(96,0,214, 0.5);
-}
-*/
-
 .mtg-card-image {
     border-radius: 8px;
-}
-
-.mtgcard img {
-    width: 100%;
-    height:auto;
-    border-radius: 8px;
-}
-
-.mtgcard .counter-container {
-    position: absolute;
-}
-
-.mtgcard .mtg-card-status-container {
-    position: absolute;
-    z-index: 9;
-    background-color: rgba(256, 256, 256, 0.0);
-    font-size: 11px;
-    height: 100%;
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    transition: background-color 0.3s linear;
-}
-
-.mtgcard .mtg-card-count-container {
-    position: absolute;
-    z-index: 10;
-    font-weight: bold;
-    font-size: 3vh;
-    -webkit-text-stroke-width: 0.75px;
-    -webkit-text-stroke-color: black;
-    left: 8px;
-}
-
-
-.mtg-card-destroy-btn {
-    position: absolute;
-    z-index: 11;
-    pointer-events: all;
-    font-size: 1.2vh;
-    right: -4px;
-    top: -4px;
-}
-
-.mtg-card-destroy-btn:hover {
-    font-size: 1.4vh;
-}
-
-.mtgcard .mtg-card-combat-stats-container {
-    position: absolute;
-    z-index: 10;
-    font-weight: bold;
-    font-size: 2vh;
-    -webkit-text-fill-color: white; /* Will override color (regardless of order) */
-    -webkit-text-stroke-width: 0.75px;
-    -webkit-text-stroke-color: black;
-    right: 4px;
-    bottom: 0;
-}
-
-.mtgcard .counter-symbol {
-    display: none;
 }
 
 .selected {
     box-shadow: 0 0 4px 2px #98FB98;
 }
 
+
+
 .zone-section {
     cursor: pointer;
-    /*transition: color 0.3s linear;*/
-    /*border-style: dashed;
-    border-color: white;
-    border-width: 2px;*/
-    /*transition: border-color 0.3s linear;*/
 }
 
 .zone-section:hover {
     color: #6000D6 !important;
 }
+
 
 
 .draggable-over {
@@ -161,58 +89,89 @@ body {
 
 
 
+.mtg-card-destroy-btn {
+    display: none;
+}
 
-.attacking {
-    color: rgb(138,3,3,1.0);
-    -webkit-text-stroke: 2px rgb(255,255,255,1.0);
-    font-size: 4vh;
+.mtgcard:hover .mtg-card-destroy-btn {
+    display: block;
+}
+
+.mtg-card-destroy-btn:hover circle {
+    r: 13px;
+}
+
+.mtg-card-destroy-btn:hover text {
+    fill: #e1e1e1;
+}
+
+
+
+
+.mtg-card-attack-icon {
+    display: none;
+}
+
+.mtgcard.attacking .mtg-card-attack-icon {
+    display: block;
+    fill: rgb(138,3,3,1.0);
+    stroke: rgb(255,255,255,1.0);
+    stroke-width: 1px;
     animation: attacking-animation 2s infinite;
-    position: absolute;
-    right: 12px;
 }
 
 @-webkit-keyframes attacking-animation {
     0% {
-		color: rgb(138,3,3,1.0);
-        -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+		fill: rgb(138,3,3,1.0);
+        stroke: rgb(255,255,255,1.0);
+        stroke-width: 1px;
 	}
 	25% {
-		color: rgb(138,3,3,0.75);
-        -webkit-text-stroke: 1px rgb(255,255,255,0.75);
+		fill: rgb(138,3,3,0.75);
+        stroke: rgb(255,255,255,0.75);
+        stroke-width: .75px;
 	}
 	50% {
-		color: rgb(138,3,3,0.5);
-        -webkit-text-stroke: 0.25px rgb(255,255,255,0.5);
+		fill: rgb(138,3,3,0.5);
+        stroke: rgb(255,255,255,0.5);
+        stroke-width: 0.25px;
 	}
     75% {
-		color: rgb(138,3,3,0.75);
-        -webkit-text-stroke: 1px rgb(255,255,255,0.75);
+		fill: rgb(138,3,3,0.75);
+        stroke: rgb(255,255,255,0.75);
+        stroke-width: .75px;
     }
     100% {
-		color: rgb(138,3,3,1.0);
-        -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+		fill: rgb(138,3,3,1.0);
+        stroke: rgb(255,255,255,1.0);
+        stroke-width: 1px;
     }
 }
 @keyframes attacking-animation {
     0% {
-		color: rgb(138,3,3,1.0);
-        -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+		fill: rgb(138,3,3,1.0);
+        stroke: rgb(255,255,255,1.0);
+        stroke-width: 1px;
 	}
 	25% {
-		color: rgb(138,3,3,0.75);
-        -webkit-text-stroke: 1px rgb(255,255,255,0.75);
+		fill: rgb(138,3,3,0.75);
+        stroke: rgb(255,255,255,0.75);
+        stroke-width: .75px;
 	}
 	50% {
-		color: rgb(138,3,3,0.5);
-        -webkit-text-stroke: 0.25px rgb(255,255,255,0.5);
+		fill: rgb(138,3,3,0.5);
+        stroke: rgb(255,255,255,0.5);
+        stroke-width: 0.25px;
 	}
     75% {
-		color: rgb(138,3,3,0.75);
-        -webkit-text-stroke: 1px rgb(255,255,255,0.75);
+		fill: rgb(138,3,3,0.75);
+        stroke: rgb(255,255,255,0.75);
+        stroke-width: .75px;
     }
     100% {
-		color: rgb(138,3,3,1.0);
-        -webkit-text-stroke: 2px rgb(255,255,255,1.0);
+		fill: rgb(138,3,3,1.0);
+        stroke: rgb(255,255,255,1.0);
+        stroke-width: 1px;
     }
 }
 
@@ -220,80 +179,6 @@ body {
 
 
 /*
-.attacking:hover {
-  animation: none;
-}*/
-
-/*
-@-webkit-keyframes pulse {
-	0% {
-		-webkit-box-shadow: 0 0 0 0px rgba(255, 0, 0, .6), 0 0 0 2px rgba(255, 0, 0, .6);
-	}
-    30% {
-		-webkit-box-shadow: 0 0 0 2px rgba(255, 0, 0, .6), 0 0 0 4px rgba(255, 0, 0, .6);
-	}
-	60% {
-		-webkit-box-shadow: 0 0 0 4px rgba(255, 0, 0, .2), 0 0 0 6px rgba(255, 0, 0, .2);
-	}
-	100% {
-		-webkit-box-shadow: 0 0 0 6px rgba(255, 0, 0, 0), 0 0 0 8px rgba(255, 0, 0, 0);
-	}
-}
-@keyframes pulse {
-	0% {
-		-moz-box-shadow: 0 0 0 0px rgba(255, 0, 0, .6), 0 0 0 2px rgba(255, 0, 0, .6);
-		box-shadow: 0 0 0 0px rgba(255, 0, 0, .6), 0 0 0 2px rgba(255, 0, 0, .6);
-	}
-    30% {
-		-moz-box-shadow: 0 0 0 2px rgba(255, 0, 0, .6), 0 0 0 4px rgba(255, 0, 0, .6);
-		box-shadow: 0 0 0 2px rgba(255, 0, 0, .6), 0 0 0 4px rgba(255, 0, 0, .6);
-	}
-	60% {
-		-moz-box-shadow: 0 0 0 4px rgba(255, 0, 0, .2), 0 0 0 6px rgba(255, 0, 0, .2);
-		box-shadow: 0 0 0 4px rgba(255, 0, 0, .2), 0 0 0 6px rgba(255, 0, 0, .2);
-	}
-	100% {
-		-moz-box-shadow: 0 0 0 6px rgba(255, 0, 0, 0), 0 0 0 8px rgba(255, 0, 0, 0);
-		box-shadow: 0 0 0 6px rgba(255, 0, 0, 0), 0 0 0 8px rgba(255, 0, 0, 0);
-	}
-}*/
-
-
-
-/*
-@-webkit-keyframes pulse {
-	0% {
-		-webkit-box-shadow: 0 0 0 0 rgba(255, 0, 0, .6);
-	}
-	70% {
-		-webkit-box-shadow: 0 0 0 8px rgba(255, 0, 0, 0);
-	}
-	100% {
-		-webkit-box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-	}
-}
-@keyframes pulse {
-	0% {
-		-moz-box-shadow: 0 0 0 0 rgba(255, 0, 0, .6);
-		box-shadow: 0 0 0 0 rgba(255, 0, 0, .6);
-	}
-	70% {
-		-moz-box-shadow: 0 0 0 8px rgba(255, 0, 0, 0);
-		box-shadow: 0 0 0 8px rgba(255, 0, 0, 0);
-	}
-	100% {
-		-moz-box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-		box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-	}
-}*/
-
-
-
-
-
-/*
- * Sidebar
- */
 .sidebar {
   position: fixed;
   top: 0;
@@ -308,16 +193,10 @@ body {
 .sidebar-sticky {
   position: relative;
   top: 0;
-  /*height: calc(100vh - 48px);*/
   height: calc(100vh - 96px);
   padding-top: .5rem;
   overflow-y: auto;
-
-  /*box-shadow: inset -10px 0px 20px rgba(0,0,0,0.6);*/
 }
-
-
-
 
 #gameLog {
     color: rgb(255, 255, 255);
@@ -337,18 +216,10 @@ body {
     50% {
         opacity: 0;
     }
-}
+}*/
 
 
 
 .game-logo-swal {
     margin: 4px;
-    /*position: absolute;*/
-    /*top: 1em;*/
-    /*bottom: 1em;*/
-    /*height: 90%;*/
 }
-
-/*.game-choose-horde-container {
-    height: 400px;
-}*/

@@ -8,15 +8,15 @@ localStorage.clear();
 var zombie;
 
 
-function toast(message) {
-    var $elem = $('<div>').append(
-        new Date().toISOString().split('.')[0],
-        ': ',
-        message,
-    );
-    $('#gameLog').append($elem);
-    $elem.get(0).scrollIntoView();
-}
+// function toast(message) {
+//     var $elem = $('<div>').append(
+//         new Date().toISOString().split('.')[0],
+//         ': ',
+//         message,
+//     );
+//     $('#gameLog').append($elem);
+//     $elem.get(0).scrollIntoView();
+// }
 
 
 
