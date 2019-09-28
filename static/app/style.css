@@ -87,7 +87,9 @@ body {
     margin-right: calc(100%*0.05);
 }
 
-
+.mtgcard text {
+    text-shadow: 1px 1px 2px black;
+}
 
 .mtg-card-destroy-btn {
     display: none;
