@@ -31,6 +31,7 @@ body {
     cursor: pointer;
     margin-right: 2px;
     margin-left: 2px;
+    width: auto; /* support for svg cards */
 }
 
 /*

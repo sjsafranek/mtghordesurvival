@@ -328,7 +328,7 @@ var CardView = Backbone.View.extend({
         'untap': 'untap',
         'destroy': 'destroy',
         'mouseover': 'mouseover',
-        'click .mtg-card-destroy-btn': 'destroyCard'
+        'click .mtg-card-destroy': 'destroyCard'
     },
 
     destroyCard: function(event) {
@@ -464,6 +464,7 @@ var CardView = Backbone.View.extend({
 
     selectCard: function(event){
         event.preventDefault();
+        event.stopPropagation();
         this.model.toggleSelect();
     },
 
@@ -593,12 +594,20 @@ var CardGroupView = Backbone.View.extend({
         this._click = function(e) {
             self.click(e);
         }
+
         this.$el.on('contextmenu', this._oncontextmenu);
         this.$el.on('dblclick', this._dblclick);
         this.$el.on('click', this._click);
     },
 
+    destroyCard: function(event) {
+        player.addGameAction(
+            this.getCard().moveTo(player.getZone('graveyard'))
+        );
+    },
+
     click: function(event){
+        event.stopPropagation();
         this.getCard().isSelected() ?
             this.unselectCards() : this.selectCards();
     },
@@ -850,7 +859,7 @@ var CardGroupView = Backbone.View.extend({
         } else {
             this._ungroup();
         }
-        this.$el.find('.mtg-card-count-container')
+        this.$el.find('.mtg-card-count')
             .empty()
             .append(this.size());
     },
@@ -888,28 +897,41 @@ var CardGroupView = Backbone.View.extend({
         for (var cid in this.cards) {
             this.cards[cid].set('__grouped', true);
         }
-        this.$el
-            .empty()
-            .append(
-                $('<span>')
-                    .addClass('mtg-card-destroy-btn badge badge-pill badge-dark')
-                    .text('X')
-                    .on('click', function() {
-                        var graveyard = player.getZone('graveyard');
-                        player.addGameAction(self.getCard().moveTo(graveyard));
-                    }),
-                $('<span>')
-                    .addClass('mtg-card-count-container')
-                    .append(this.size()),
-                $('<span>')
-                    .addClass('mtg-card-status-container'),
-                $('<span>')
-                    .addClass('mtg-card-combat-stats-container')
-                    .append(
-                        this.getPower() + ' / ' + this.getToughness()
-                    ),
-                $('<img>').attr('src', this.getImage())
-            );
+
+        if (!this._rendered) {
+            debugger;
+            this.$el.html(this.template(this.getCard().attributes));
+            this._destroyCard = function(e) {
+                self.destroyCard(e);
+            }
+            this.$el.find('.mtg-card-destroy').on('click', this._destroyCard);
+            this._rendered = true;
+        }
+        // debugger;
+        // this.$el
+        //     .empty()
+        //     .append(
+        //         $('<span>')
+        //             .addClass('mtg-card-destroy-btn badge badge-pill badge-dark')
+        //             .text('X')
+        //             .on('click', function() {
+        //                 var graveyard = player.getZone('graveyard');
+        //                 player.addGameAction(self.getCard().moveTo(graveyard));
+        //             }),
+        //         $('<span>')
+        //             .addClass('mtg-card-count-container')
+        //             .append(this.size()),
+        //         $('<span>')
+        //             .addClass('mtg-card-status-container'),
+        //         $('<span>')
+        //             .addClass('mtg-card-combat-stats-container')
+        //             .append(
+        //                 this.getPower() + ' / ' + this.getToughness()
+        //             ),
+        //         $('<img>').attr('src', this.getImage())
+        //     );
+
+        this.$el.find('.mtg-card-count').empty().append(this.size());
 
         this.$el.show();
     },
@@ -922,5 +944,9 @@ var CardGroupView = Backbone.View.extend({
             .empty()
             .append(this.size());
         (2 > this.size()) && this.$el.hide();
-    }
+    } //,
+    // render: function(){
+    //     this.$el.html(this.template(this.getCard().attributes));
+    //     return this;
+    // }
 });

@@ -18,11 +18,11 @@
         <div class="container-fluid">
             <div class="row">
 
-                <main role="main" class="col-md-9">
+                <!-- <main role="main" class="col-md-9"> -->
+                <main role="main" class="col-md-12">
 
                     <div class="row">
                         <div class="col-md-12 controls">
-                            <!-- <h1 class="mt-5">Horde Survival</h1> -->
                             <div class="row mt-5 justify-content-md-center turn-phase-container">
                                 <svg class="turn-phase-icon beginning-phase" width="46" height="46" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
                                     <rect fill="#e1e1e1" transform="rotate(-45 23.036 23.036)" x="20.536" y="20.536" width="5" height="5" fill-rule="evenodd"/>
@@ -92,7 +92,7 @@
 
                 </main>
 
-                <nav class="col-md-3 d-none d-md-block bg-black sidebar">
+                <!-- <nav class="col-md-3 d-none d-md-block bg-black sidebar">
                     <div class="sidebar-sticky">
                         <div id="gameLog">
                         </div>
@@ -100,7 +100,7 @@
                             <i class="fas fa-i-cursor"></i>
                         </div>
                     </div>
-                </nav>
+                </nav> -->
 
             </div>
         </div>
@@ -130,18 +130,45 @@
 
         <script type="text/template" id="card_template">
             <!-- <div class="card-container"> -->
-                <span class="mtg-card-destroy-btn badge badge-pill badge-dark">
+                <!-- <span class="mtg-card-destroy-btn badge badge-pill badge-dark">
                     X
-                </span>
-                <span class="mtg-card-count-container">
+                </span> -->
+                <!-- <span class="mtg-card-count-container">
                 </span>
                 <span class="mtg-card-status-container">
-                </span>
-                <span class="mtg-card-combat-stats-container">
+                </span> -->
+                <!-- <span class="mtg-card-combat-stats-container">
                     <%= power %> / <%= toughness %>
-                </span>
-                <img class="mtg-card-image" src="<%= image_uris.small %>"></img>
+                </span> -->
+                <!-- <img class="mtg-card-image" src="<%= image_uris.small %>"></img> -->
             <!-- </div> -->
+
+            <svg width="156" height="210" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <defs>
+                    <rect id="rect" x="0" y="4%" width="96%" height="96%" rx="16"/>
+                    <clipPath id="clip">
+                        <use xlink:href="#rect"/>
+                    </clipPath>
+                </defs>
+                <g>
+                    <image y="10" xlink:href="<%= image_uris.small %>" height="200" width="150" clip-path="url(#clip)"/>
+                </g>
+                <g>
+                    <text x="10" y="50" fill="#e1e1e1" font-size="36px" font-weight="bold" stroke="black" stroke-width="0.75px" class="mtg-card-count">
+                        1
+                    </text>
+                </g>
+                <g class="mtg-card-destroy">
+                    <circle cx="140" cy="15" r="11" fill="grey"/>
+                    <text x="135" y="21" fill="black">X</text>
+                </g>
+                <g>
+                    <text x="96" y="198" fill="#e1e1e1" font-size="26px" font-weight="bold" stroke="black" stroke-width="0.75px">
+                        <%= power %>/<%= toughness %>
+                    </text>
+                </g>
+            </svg>
+
         </script>
 
         <script src="static/app/utils.js"></script>
