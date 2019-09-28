@@ -106,6 +106,14 @@ body {
 }
 
 
+.mtg-card-count {
+    display: none;
+}
+
+.mtgcard.mtgcard-group .mtg-card-count {
+    display: block;
+}
+
 
 .mtg-card-creature-stats {
     display: none;
