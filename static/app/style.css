@@ -107,6 +107,15 @@ body {
 
 
 
+.mtg-card-creature-stats {
+    display: none;
+}
+
+.mtgcard.creature .mtg-card-creature-stats {
+    display: block;
+}
+
+
 
 .mtg-card-attack-icon {
     display: none;
