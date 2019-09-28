@@ -53,7 +53,7 @@ var Player = function(options) {
 
     this.zones.battlefield.on('add', function(card){
         var $container = $('<div>')
-            .addClass('mtgcard')
+            .addClass('mtgcard noselect')
             .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
             .addClass(card.getTypes().join(' '));
 
@@ -68,22 +68,20 @@ var Player = function(options) {
             model: card
         });
 
-        $container.draggable({
-            opacity : 0.7,
-            revert  : 'invalid',
-            helper  : 'clone',
-            zIndex  : 100,
-            cursor  : 'move',
-            start: function (e, ui) {
-                ui.helper.animate({
-                    width: 80,
-                    height: 50
-                }, 'fast');
-            },
-        });
+        // $container.draggable({
+        //     opacity : 0.7,
+        //     revert  : 'invalid',
+        //     helper  : 'clone',
+        //     zIndex  : 100,
+        //     cursor  : 'move',
+        //     start: function (e, ui) {
+        //         ui.helper.animate({
+        //             width: 80,
+        //             height: 50
+        //         }, 'fast');
+        //     },
+        // });
 
-        // self.updateCounts();
-        // self._groupPermanents();
     });
 
     this.zones.battlefield.on('remove', function(card) {
@@ -242,34 +240,34 @@ Player.prototype.addListeners = function() {
         });
     }
 
-    var ui2Zone = {
-        '.zoneHand': 'hand',
-        '.zoneLibrary': 'library',
-        '.zoneGraveyard': 'graveyard',
-        '.zoneExile': 'exile',
-        '.zoneBattlefield': 'battlefield',
-    }
-
-    Object.keys(ui2Zone).map(function(key) {
-        $(key).on('click', function(e) {
-            selectAndChangeCardZone(ui2Zone[key]);
-        });
-
-        if ('battlefield' == ui2Zone[key]) return;
-
-        $(key).droppable({
-            drop: function(event , ui) {
-                ui.draggable.trigger('moveTo', {zone: ui2Zone[key]});
-                $(event.target).removeClass('draggable-over');
-            },
-            over: function(event, ui) {
-                $(event.target).addClass('draggable-over');
-            },
-            out: function(event, ui) {
-                $(event.target).removeClass('draggable-over');
-            }
-        });
-    });
+    // var ui2Zone = {
+    //     '.zoneHand': 'hand',
+    //     '.zoneLibrary': 'library',
+    //     '.zoneGraveyard': 'graveyard',
+    //     '.zoneExile': 'exile',
+    //     '.zoneBattlefield': 'battlefield',
+    // }
+    //
+    // Object.keys(ui2Zone).map(function(key) {
+    //     $(key).on('click', function(e) {
+    //         selectAndChangeCardZone(ui2Zone[key]);
+    //     });
+    //
+    //     if ('battlefield' == ui2Zone[key]) return;
+    //
+    //     $(key).droppable({
+    //         drop: function(event , ui) {
+    //             ui.draggable.trigger('moveTo', {zone: ui2Zone[key]});
+    //             $(event.target).removeClass('draggable-over');
+    //         },
+    //         over: function(event, ui) {
+    //             $(event.target).addClass('draggable-over');
+    //         },
+    //         out: function(event, ui) {
+    //             $(event.target).removeClass('draggable-over');
+    //         }
+    //     });
+    // });
 
 
     // hot keys
@@ -784,7 +782,7 @@ Player.prototype.getGroup = function(card) {
     if (!this.groups[_hsh]) {
         this.groups[_hsh] = new CardGroupView({
             el: $('<div>', {id: _hsh})
-                .addClass('mtgcard mtgcard-group')
+                .addClass('mtgcard mtgcard-group noselect')
                 .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
                 .addClass(card.getTypes().join(' '))
                 .hide()

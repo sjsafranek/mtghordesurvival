@@ -330,6 +330,7 @@ var CardView = Backbone.View.extend({
     },
     events: {
         'click' : 'selectCard',
+        // 'mouseup' : 'selectCard',
         'dblclick': 'toggleTapped',
         'contextmenu': 'contextMenu',
         'moveTo': 'moveTo',
@@ -607,6 +608,7 @@ var CardGroupView = Backbone.View.extend({
         this.$el.on('contextmenu', this._oncontextmenu);
         this.$el.on('dblclick', this._dblclick);
         this.$el.on('click', this._click);
+        // this.$el.on('mouseup', this._click);
     },
 
     destroyCard: function(event) {
