@@ -66,9 +66,10 @@ function buildLibrary(deckList, callback) {
         player.updateCounts();
 
         fetchCard(d.name, function(cardData) {
-            if ('Zombie' == card.name) {
+            if ('Zombie' == cardData.name) {
                 zombie = cardData;
             }
+            // populate cards with ScryFall API data
             for (var i=0; i<cards.length; i++) {
                 cards[i].set(cardData);
             }
