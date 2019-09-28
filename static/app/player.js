@@ -752,7 +752,7 @@ Player.prototype.castSpell = function(card, callback) {
     }).then(function(result){
         if (!result.value) {
             Swal.fire(
-                GameUtils.selectZoneOptions({exclude:['battlefield']})
+                GameUtils.selectZoneOptions({exclude:['battlefield'], default:'graveyard'})
             ).then(function(result) {
                 result.value &&
                     self.addGameAction(card.moveTo(self.getZone(result.value)));
