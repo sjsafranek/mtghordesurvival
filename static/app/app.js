@@ -54,42 +54,28 @@ function buildLibrary(deckList, callback) {
         return d;
     });
 
-    // var c=0;
     data.map(function(d) {
         var cards = [];
         for (var i=0; i<parseInt(d.count); i++) {
-            // player.zones.library.create();
+            // lazy load the card data
             var card = new Card({'name': d.name });
-            player.zones.library.add(card);
+            player.getZone('library').add(card);
             cards.push(card);
-            player.zones.library.shuffle();
+            player.getZone('library').shuffle();
         }
         player.updateCounts();
 
-        fetchCard(d.name, function(card) {
+        fetchCard(d.name, function(cardData) {
             if ('Zombie' == card.name) {
-                zombie = card;
+                zombie = cardData;
             }
-
             for (var i=0; i<cards.length; i++) {
-                cards[i].set(card);
+                cards[i].set(cardData);
             }
-
-            // for (var i=0; i<parseInt(d.count); i++) {
-            //     player.zones.library.create(card);
-            //     player.zones.library.shuffle();
-            // }
-            // player.updateCounts();
-            // c++;
-            // if (c == data.length) {
-                // loading.close();
-                // callback && callback();
-            // }
         });
 
         loading.close();
         callback && callback();
-
     });
 }
 
