@@ -433,6 +433,7 @@ var CardView = Backbone.View.extend({
         }
 
         var self = this;
+        console.log('TODO: animation based on zone',this.model.collection.name);
         this.$el.hide('explode', { "pieces":25 }, 600, function() {
             self.remove();
         });
@@ -601,6 +602,7 @@ var CardGroupView = Backbone.View.extend({
     },
 
     destroyCard: function(event) {
+        event.stopPropagation();
         player.addGameAction(
             this.getCard().moveTo(player.getZone('graveyard'))
         );
