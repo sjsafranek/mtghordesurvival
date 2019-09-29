@@ -612,7 +612,7 @@ Player.prototype.combatPhase = function(callback) {
 
     this._passPriority(function(){
 
-        self._passPriority(function(){
+        // self._passPriority(function(){
 
             var creatures = self.zones.battlefield.filter(function(card) {
                 return card.isType('Creature');
@@ -621,8 +621,9 @@ Player.prototype.combatPhase = function(callback) {
                 return card.nocombat();
             }));
 
-            self._passPriority(callback);
-        });
+            // self._passPriority(callback);
+            callback && callback();
+        // });
     });
 
 }

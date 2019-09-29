@@ -82,10 +82,17 @@ body {
     font-size: 10px;
 }
 
-.tapped {
-    transform: rotate(90deg);
+.mtgcard.tapped {
     margin-left: calc(100%*0.05);
     margin-right: calc(100%*0.05);
+    margin-top: -4%;
+    margin-bottom: -4%;
+}
+
+.mtgcard.tapped svg {
+    transform: rotate(90deg);
+    /*margin-left: calc(100%*0.05);
+    margin-right: calc(100%*0.05);*/
 }
 
 .mtgcard text {
