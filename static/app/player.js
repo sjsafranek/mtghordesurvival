@@ -54,7 +54,7 @@ var Player = function(options) {
     this.zones.battlefield.on('add', function(card){
         var $container = $('<div>')
             .addClass('mtgcard noselect')
-            .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
+            // .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
             .addClass(card.getTypes().join(' '));
 
         if (card.isType('creature')) {
@@ -432,7 +432,7 @@ Player.prototype.pause = function() {
         this._reject("Pause game");
         $('.continue').remove();
         var $elem = $('<button>', {title:'Continue'})
-            .addClass("btn btn-lg btn-primary col-md-2 ml-2 mr-2 continue")
+            .addClass("btn btn-lg btn-primary mtgcardml-2 mr-2 continue")
             .append(
                 $('<i>').addClass('fas fa-forward')
             )
@@ -783,7 +783,7 @@ Player.prototype.getGroup = function(card) {
         this.groups[_hsh] = new CardGroupView({
             el: $('<div>', {id: _hsh})
                 .addClass('mtgcard mtgcard-group noselect')
-                .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
+                // .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
                 .addClass(card.getTypes().join(' '))
                 .hide()
         });
