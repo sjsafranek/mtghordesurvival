@@ -240,34 +240,34 @@ Player.prototype.addListeners = function() {
         });
     }
 
-    // var ui2Zone = {
-    //     '.zoneHand': 'hand',
-    //     '.zoneLibrary': 'library',
-    //     '.zoneGraveyard': 'graveyard',
-    //     '.zoneExile': 'exile',
-    //     '.zoneBattlefield': 'battlefield',
-    // }
-    //
-    // Object.keys(ui2Zone).map(function(key) {
-    //     $(key).on('click', function(e) {
-    //         selectAndChangeCardZone(ui2Zone[key]);
-    //     });
-    //
-    //     if ('battlefield' == ui2Zone[key]) return;
-    //
-    //     $(key).droppable({
-    //         drop: function(event , ui) {
-    //             ui.draggable.trigger('moveTo', {zone: ui2Zone[key]});
-    //             $(event.target).removeClass('draggable-over');
-    //         },
-    //         over: function(event, ui) {
-    //             $(event.target).addClass('draggable-over');
-    //         },
-    //         out: function(event, ui) {
-    //             $(event.target).removeClass('draggable-over');
-    //         }
-    //     });
-    // });
+    var ui2Zone = {
+        '.zoneHand': 'hand',
+        '.zoneLibrary': 'library',
+        '.zoneGraveyard': 'graveyard',
+        '.zoneExile': 'exile',
+        '.zoneBattlefield': 'battlefield',
+    }
+
+    Object.keys(ui2Zone).map(function(key) {
+        $(key).on('click', function(e) {
+            selectAndChangeCardZone(ui2Zone[key]);
+        });
+
+        if ('battlefield' == ui2Zone[key]) return;
+
+        // $(key).droppable({
+        //     drop: function(event , ui) {
+        //         ui.draggable.trigger('moveTo', {zone: ui2Zone[key]});
+        //         $(event.target).removeClass('draggable-over');
+        //     },
+        //     over: function(event, ui) {
+        //         $(event.target).addClass('draggable-over');
+        //     },
+        //     out: function(event, ui) {
+        //         $(event.target).removeClass('draggable-over');
+        //     }
+        // });
+    });
 
 
     // hot keys
