@@ -54,7 +54,6 @@ var Player = function(options) {
     this.zones.battlefield.on('add', function(card){
         var $container = $('<div>')
             .addClass('mtgcard noselect')
-            // .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
             .addClass(card.getTypes().join(' '));
 
         if (card.isType('creature')) {
@@ -783,7 +782,6 @@ Player.prototype.getGroup = function(card) {
         this.groups[_hsh] = new CardGroupView({
             el: $('<div>', {id: _hsh})
                 .addClass('mtgcard mtgcard-group noselect')
-                // .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
                 .addClass(card.getTypes().join(' '))
                 .hide()
         });

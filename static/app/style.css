@@ -32,8 +32,9 @@ body {
     width: auto; /* support for svg cards */
 }
 
+/* clips white edges from corners */
 .mtg-card-image {
-    border-radius: 8px;
+    border-radius: 12px;
 }
 
 .selected {
