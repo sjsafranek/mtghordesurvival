@@ -2,6 +2,8 @@
 var Player = function(options) {
     var self = this;
 
+    this.debug = true;
+
     options = options || {};
     this.handLimit = options.handLimit || 7;
     this.gameMode = options;
@@ -67,28 +69,12 @@ var Player = function(options) {
             model: card
         });
 
-        // $container.draggable({
-        //     opacity : 0.7,
-        //     revert  : 'invalid',
-        //     helper  : 'clone',
-        //     zIndex  : 100,
-        //     cursor  : 'move',
-        //     start: function (e, ui) {
-        //         ui.helper.animate({
-        //             width: 80,
-        //             height: 50
-        //         }, 'fast');
-        //     },
-        // });
-
     });
 
     this.zones.battlefield.on('remove', function(card) {
         $('.battlefield .mtgcard').trigger('destroy', {
             'cid': card.cid
         });
-        // player.updateCounts();
-        // self._groupPermanents();
     });
 
 
@@ -253,19 +239,6 @@ Player.prototype.addListeners = function() {
         });
 
         if ('battlefield' == ui2Zone[key]) return;
-
-        // $(key).droppable({
-        //     drop: function(event , ui) {
-        //         ui.draggable.trigger('moveTo', {zone: ui2Zone[key]});
-        //         $(event.target).removeClass('draggable-over');
-        //     },
-        //     over: function(event, ui) {
-        //         $(event.target).addClass('draggable-over');
-        //     },
-        //     out: function(event, ui) {
-        //         $(event.target).removeClass('draggable-over');
-        //     }
-        // });
     });
 
 
@@ -752,6 +725,11 @@ Player.prototype.castSpell = function(card, callback) {
             Swal.fire(
                 GameUtils.selectZoneOptions({exclude:['battlefield'], default:'graveyard'})
             ).then(function(result) {
+                if(!result.value) {
+                    self.castSpell(card, callback);
+                    return;
+                }
+
                 result.value &&
                     self.addGameAction(card.moveTo(self.getZone(result.value)));
                 callback && callback();
@@ -804,38 +782,3 @@ Player.prototype.unselectAll = function() {
         card.unselect();
     });
 }
-
-// Player.prototype._groupPermanents = function() {
-//     var self = this;
-//
-//     // needs changed
-//     for (var _hsh in this.groups) {
-//         this.groups[_hsh].destroy();
-//     }
-//
-//     this.groups = {};
-//
-//     var battlefield = this.getZone('battlefield');
-//     for (var i=0; i<battlefield.length; i++) {
-//         card = battlefield.models[i];
-//         var _hsh = card.md5();
-//         if (!this.groups[_hsh]) {
-//             var $container = $('<div>')
-//                 .addClass('mtgcard')
-//                 .addClass(card.isType('creature') ? 'col-md-2' : 'col-md-4' )
-//                 .addClass(card.getTypes().join(' '));
-//
-//             this.groups[_hsh] = new CardGroupView({
-//                 el: $container
-//             });
-//
-//             if (card.isType('creature')) {
-//                 $('.battlefield .creatures').append($container);
-//             } else {
-//                 $('.battlefield .noncreatures').append($container);
-//             }
-//
-//         }
-//         this.groups[_hsh].addCard(card);
-//     };
-// }

@@ -19,7 +19,7 @@ var GameUtils = {
             },
             inputPlaceholder: 'Select a zone',
             inputValue: opts.default || null,
-            showCancelButton: false,
+            showCancelButton: true,
             allowEscapeKey: false,
             allowOutsideClick: false
         }
