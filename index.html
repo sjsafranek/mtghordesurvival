@@ -135,16 +135,14 @@
         <script type="text/template" id="card_template">
 
             <svg width="156" height="210" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                <!-- <defs> -->
-                    <!-- <rect id="rect" x="0" y="4%" width="96%" height="96%" rx="16"/> -->
+                <!-- <defs>
                     <clipPath id="clip">
-                        <!-- <use xlink:href="#rect"/> -->
                         <rect  x="0" y="4%" width="96%" height="96%" rx="16"/>
                     </clipPath>
-                <!-- </defs> -->
+                </defs> -->
                 <g>
                     <!-- <image y="10" xlink:href="<%= image_uris.small %>" height="200" width="150" clip-path="url(#clip)"/> -->
-                    <image y="10" xlink:href="<%= image_uris.small %>" height="200" width="150" clip-path="inset(22% 12% 16px 16px);"/>
+                    <image y="10" xlink:href="<%= image_uris.small %>" height="200" width="150" style="clip-path: inset(2px 2px 2px 2px round 8px);"/>
                 </g>
                 <g>
                     <text x="10" y="52" fill="#e1e1e1" font-size="42px" font-weight="bold" stroke="black" stroke-width="1px" class="mtg-card-count">

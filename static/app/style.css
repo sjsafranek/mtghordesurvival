@@ -41,6 +41,10 @@ body {
     box-shadow: 0 0 4px 2px #98FB98;
 }
 
+/*.mtgcard svg image {
+    clip-path: inset(2px 2px 2px 2px round 8px);
+}*/
+
 
 
 .zone-section {
@@ -82,7 +86,7 @@ body {
     font-size: 10px;
 }
 
-.mtgcard.tapped {
+/*.mtgcard.tapped {
     margin-left: calc(100%*0.05);
     margin-right: calc(100%*0.05);
     margin-top: -4%;
@@ -91,8 +95,13 @@ body {
 
 .mtgcard.tapped svg {
     transform: rotate(90deg);
-    /*margin-left: calc(100%*0.05);
-    margin-right: calc(100%*0.05);*/
+}*/
+
+
+.mtgcard.tapped {
+    transform: rotate(90deg);
+    margin-left: calc(100%*0.05);
+    margin-right: calc(100%*0.05);
 }
 
 .mtgcard text {
