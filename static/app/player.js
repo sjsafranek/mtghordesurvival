@@ -399,8 +399,8 @@ Player.prototype.updateCounts = function() {
     $('.graveyardCount').text(this.zones.graveyard.length);
     $('.exileCount').text(this.zones.exile.length);
     $('.battlefieldCount').text(this.zones.battlefield.length);
-
     $('.horde-remaining-count').text(this.zones.library.length);
+    $('.turn-number').text(this.turn.number);
 }
 
 Player.prototype.takeTurn = function(callback) {
