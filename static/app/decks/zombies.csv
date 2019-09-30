@@ -1,4 +1,4 @@
-count,name
+count,name,scryfall_id
 1,Call to the Grave
 2,Bad Moon
 1,Plague Wind
@@ -27,4 +27,4 @@ count,name
 1,Unbreathing Horde
 1,Walking Corpse
 5,Zombie Giant
-55,Zombie
+55,Zombie,8e214f84-01ee-49c1-8801-4e550b5ade5d

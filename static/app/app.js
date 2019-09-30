@@ -2,10 +2,7 @@
 localStorage.clear();
 
 
-// TODO
-//  - make Zone views
-
-var zombie;
+// var zombie;
 
 
 // function toast(message) {
@@ -20,41 +17,59 @@ var zombie;
 
 
 
-
-
 var player = new Player();
 
 
-// Build deck
 var deckLists = {
-    Zombies: 'count,name\n1,Call to the Grave\n2,Bad Moon\n1,Plague Wind\n1,Damnation\n1,Yixlid Jailer\n1,Forsaken Wastes\n2,Nested Ghoul\n2,Infectious Horror\n2,Delirium Skeins\n1,Blind Creeper\n2,Soulless One\n2,Vengeful Dead\n1,Fleshbag Marauder\n1,Carrion Wurm\n3,Maggot Carrier\n4,Cackling Fiend\n1,Death Baron\n1,Grave Titan\n2,Severed Legion\n1,Skulking Knight\n1,Undead Warchief\n1,Twilights Call\n1,Army of the Damned\n1,Endless Ranks of the Dead\n2,Rotting Fensnake\n1,Unbreathing Horde\n1,Walking Corpse\n5,Zombie Giant\n55,Zombie'
+    'Zombies': 'static/app/decks/zombies.csv',
+    '13 Demon Lords': 'static/app/decks/13-demon-lords.csv'
 }
 
 
+function fetchDeckList(deckListUrl, callback) {
+    d3.csv(deckListUrl, function(d) {
+            d.count = +d.count;
+            return d;
+        }).then(function(data) {
+            callback && callback(null, data);
+        })
+        .catch(function(error){
+            swal.fire({
+                title: 'Error',
+                text: error,
+                type: 'error'
+            }).then(function() {
+                callback && callback(error);
+            });
+        });
+}
 
-function fetchCard(card_name, callback) {
+function fetchCardByName(card_name, callback) {
     $.ajax({
         method: 'GET',
         url: 'https://api.scryfall.com/cards/named?exact=' + card_name,
     }).done(callback)
 }
 
+function fetchCardByScryFallId(card_id, callback) {
+    $.ajax({
+        method: 'GET',
+        url: 'https://api.scryfall.com/cards/' + card_id,
+    }).done(callback)
+}
+
 function buildLibrary(deckList, callback) {
     var loading = Swal.fire({
-      title: 'Loading deck',
-      onBeforeOpen: () => {
-          Swal.showLoading()
-      },
-      showCancelButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false
+        title: 'Loading deck',
+        onBeforeOpen: () => {
+            Swal.showLoading()
+        },
+        showCancelButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false
     });
 
-    var data = d3.csvParse(deckList, function(d) {
-        return d;
-    });
-
-    data.map(function(d) {
+    deckList.map(function(d) {
         var cards = [];
         for (var i=0; i<parseInt(d.count); i++) {
             // lazy load the card data
@@ -65,10 +80,11 @@ function buildLibrary(deckList, callback) {
         }
         player.updateCounts();
 
-        fetchCard(d.name, function(cardData) {
-            if ('Zombie' == cardData.name) {
-                zombie = cardData;
-            }
+        var func = d.scryfall_id ?
+            fetchCardByScryFallId : fetchCardByName;
+
+        func(d.scryfall_id || d.name, function(cardData) {
+            player.addCard(cardData);
             // populate cards with ScryFall API data
             for (var i=0; i<cards.length; i++) {
                 cards[i].set(cardData);
@@ -113,10 +129,7 @@ function chooseHorde(callback) {
         inputOptions[i] = i;
     }
     Swal.fire({
-        // title: 'Choose a Horde',
-        // customClass: 'game-choose-horde-container',
         imageUrl: 'static/app/icons/XLarge/Hand Logo.svg',
-        // imageHeight: 300,
         imageClass: 'game-logo-swal',
         input: 'select',
         inputOptions: inputOptions,
@@ -127,7 +140,12 @@ function chooseHorde(callback) {
         allowEscapeKey: false
     }).then(function(results) {
         if (results.value) {
-            buildLibrary(deckLists[results.value], numberOfPlayers);
+            fetchDeckList(deckLists[results.value], function(err, data) {
+                if (err) {
+                    return chooseHorde(callback)
+                }
+                buildLibrary(data, numberOfPlayers);
+            });
             return;
         }
         chooseHorde(callback);
@@ -135,9 +153,3 @@ function chooseHorde(callback) {
 }
 
 chooseHorde();
-
-
-
-$('#addZombie').on('click', function(e) {
-    player.resolveSpell(new Card(zombie));
-});

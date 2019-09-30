@@ -1,4 +1,4 @@
-count,name
+count,name,scryfall_id
 1,Archfiend of Spite
 1,"Rakdos, the Showstopper"
 1,Archfiend of Depravity
@@ -21,7 +21,7 @@ count,name
 1,Master of the Feast
 1,Damnation
 1,Plague Wind
-4,Angel Token
-6,Beast Token
-50,Soldier Token
+4,Angel,96f407ef-2b08-45e9-a45e-128cf0a63839
+6,Beast,381854e2-7369-473e-a604-4dd7c010fc89
+50,Human Soldier
 1,Westvale Abbey

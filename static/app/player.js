@@ -7,7 +7,7 @@ var Player = function(options) {
     options = options || {};
     this.handLimit = options.handLimit || 7;
     this.gameMode = options;
-
+    this._cards = {};
     this.groups = {}
 
     // HACK
@@ -56,13 +56,16 @@ var Player = function(options) {
     this.zones.battlefield.on('add', function(card){
         var $container = $('<div>')
             .addClass('mtgcard noselect')
-            .addClass(card.getTypes().join(' '));
+            .addClass(card.getTypes().join(' '))
+            .hide();
 
         if (card.isType('creature')) {
             $('.battlefield .creatures').append($container);
         } else {
             $('.battlefield .noncreatures').append($container);
         }
+
+        $container.fadeIn();
 
         var cardView = new CardView({
             el: $container,
@@ -80,6 +83,10 @@ var Player = function(options) {
 
     this.updateCounts();
     this.addListeners();
+}
+
+Player.prototype.addCard = function(cardData) {
+    this._cards[cardData.name] = cardData;
 }
 
 Player.prototype.getZone = function(name) {
@@ -143,6 +150,52 @@ Player.prototype.redo = function() {
 
 Player.prototype.addListeners = function() {
     var self = this;
+
+
+    $('#resolveSpell').on('click', function(event) {
+        var inputOptions = {};
+        for (var name in self._cards) {
+            inputOptions[name] = name;
+        }
+        swal.fire({
+                title: 'Select a card',
+                input: 'select',
+                inputOptions: inputOptions,
+                inputPlaceholder: 'Select a card',
+                showCancelButton: true //,
+                // allowEscapeKey: false,
+                // allowOutsideClick: false
+        }).then(function(result) {
+            console.log(result.value);
+            if (result.value) {
+                var data = self._cards[result.value];
+                // self.resolveSpell(new Card(data));
+
+                var options = {};
+                for (var i=1; i<14; i++) {
+                    options[i] = i;
+                }
+
+                swal.fire({
+                        title: 'How many cards?',
+                        input: 'select',
+                        inputOptions: options,
+                        inputValue: '1',
+                        showCancelButton: true
+                    })
+                    .then(function(result) {
+                        if (result.value) {
+                            for (var i=0; i<parseInt(result.value); i++) {
+                                self.resolveSpell(new Card(data));
+                            }
+                        }
+                    });
+
+
+            }
+        });
+    });
+
 
     $('body').on('click dblclick contextmenu', function(event) {
         var $elem = $(event.target);
