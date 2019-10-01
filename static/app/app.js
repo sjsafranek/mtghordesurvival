@@ -2,20 +2,6 @@
 localStorage.clear();
 
 
-// var zombie;
-
-
-// function toast(message) {
-//     var $elem = $('<div>').append(
-//         new Date().toISOString().split('.')[0],
-//         ': ',
-//         message,
-//     );
-//     $('#gameLog').append($elem);
-//     $elem.get(0).scrollIntoView();
-// }
-
-
 
 var player = new Player();
 
@@ -84,6 +70,7 @@ function buildLibrary(deckList, callback) {
             fetchCardByScryFallId : fetchCardByName;
 
         func(d.scryfall_id || d.name, function(cardData) {
+            // allow users to play any card in deck
             player.addCard(cardData);
             // populate cards with ScryFall API data
             for (var i=0; i<cards.length; i++) {
