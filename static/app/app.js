@@ -1,7 +1,7 @@
 
 localStorage.clear();
 
-
+var toolTip = new ToolTip();
 
 var player = new Player();
 
