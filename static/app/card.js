@@ -491,6 +491,8 @@ var CardView = Backbone.View.extend({
 
         this.remove();
 
+        toolTip.hide();
+
         // var self = this;
         // console.log('TODO: animation based on zone',this.model.collection.name);
         // this.$el.hide('explode', { "pieces":25 }, 600, function() {
