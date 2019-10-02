@@ -148,6 +148,30 @@ Player.prototype.redo = function() {
     // toast('Redo: ' + this.gameActions[this.currentGameAction].message);
 }
 
+Player.prototype._castSpells = function(cards, callback) {
+    // Cast all spells from array
+    // This must be done sequentially but use Promises for SweetAlert2
+    // https://css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
+    var self = this;
+    cards = cards || [];
+    var callbacks = cards.map(function(card) {
+        return function() {
+            return new Promise((resolve, reject) => {
+                self.castSpell(card, resolve);
+            });
+        }
+    });
+    // cast card number of times
+    var promise = Promise.resolve();
+    callbacks.reduce( (previousPromise, clbk) => {
+        return previousPromise.then(clbk);
+    }, promise);
+    promise.catch(function(err){
+        console.log(err);
+    });
+    promise.finally(callback);
+}
+
 Player.prototype.addListeners = function() {
     var self = this;
 
@@ -194,25 +218,11 @@ Player.prototype.addListeners = function() {
             if (results.value) {
                 var cardName = results.value[0];
                 var num = parseInt(results.value[1]);
-                var callbacks = [];
+                var cards = [];
                 for (var i=0; i<num; i++) {
-                    callbacks.push(
-                        function() {
-                            return new Promise((resolve, reject) => {
-                                self.castSpell( new Card(self._cards[cardName]), resolve );
-                            });
-                        }
-                    );
+                    cards.push(new Card(self._cards[cardName]));
                 }
-                // cast card number of times
-                var promise = Promise.resolve();
-                callbacks.reduce( (previousPromise, clbk) => {
-                    return previousPromise.then(clbk);
-                }, promise);
-                promise.catch(function(err){
-                    console.log(err);
-                });
-                //.end
+                self._castSpells(cards);
             }
         });
     });
@@ -285,12 +295,16 @@ Player.prototype.addListeners = function() {
             if (!result.value || result.dismiss) return;
             var cards = result.value[0];
             var newZone = result.value[1];
+
+            if ('stack' == newZone) {
+                self._castSpells(cards);
+                return;
+            }
+
             for (var i=0; i<cards.length; i++) {
                 var card = cards[i]
                 zone.remove(card);
-                if ('stack' == newZone) {
-                    self.castSpell(card);
-                } else if ('battlefield' == newZone) {
+                if ('battlefield' == newZone) {
                     self.resolveSpell(card);
                 } else {
                     self.zones[newZone].add(card);
@@ -631,19 +645,26 @@ Player.prototype._mainPhase = function(callback) {
     // Cast all spells from hand
     // This must be done sequentially but use Promises for SweetAlert2
     // https://css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
-    this.zones.hand.reduce( (previousPromise, nextCard) => {
-        return previousPromise.then(() => {
-            return new Promise((resolve, reject) => {
-                return self.castSpell(nextCard, function(){
-                    resolve();
-                    // continue when no cards are left to cast
-                    if (0 == self.zones.hand.length) {
-                        self._passPriority(callback);
-                    }
-                });
-            });
-        });
-    }, Promise.resolve());
+    // this.zones.hand.reduce( (previousPromise, nextCard) => {
+    //     return previousPromise.then(() => {
+    //         return new Promise((resolve, reject) => {
+    //             return self.castSpell(nextCard, function(){
+    //                 resolve();
+    //                 // continue when no cards are left to cast
+    //                 if (0 == self.zones.hand.length) {
+    //                     self._passPriority(callback);
+    //                 }
+    //             });
+    //         });
+    //     });
+    // }, Promise.resolve());
+
+    this._castSpells(
+        this.getZone('hand').map(function(card) {
+            return card;
+        }),
+        function() { self._passPriority(callback); }
+    );
 }
 
 Player.prototype.combatPhase = function(callback) {
