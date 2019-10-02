@@ -310,11 +310,16 @@ Player.prototype.addListeners = function() {
     }
 
     Object.keys(ui2Zone).map(function(key) {
-        $(key).on('click', function(e) {
+        $(key).on('contextmenu', function(e) {
             selectAndChangeCardZone(ui2Zone[key]);
         });
-
         if ('battlefield' == ui2Zone[key]) return;
+    });
+
+    $('.zoneLibrary').on('click', function(e){
+        // TODO: draw N cards
+        console.log('TODO: draw N cards');
+        self.drawCard();
     });
 
 
@@ -480,7 +485,7 @@ Player.prototype.pause = function() {
         this._reject("Pause game");
         $('.continue').remove();
         var $elem = $('<button>', {title:'Continue'})
-            .addClass("btn btn-lg btn-primary mtgcardml-2 mr-2 continue")
+            .addClass("btn btn-lg btn-primary ml-2 mr-2 continue")
             .append(
                 $('<i>').addClass('fas fa-forward')
             )
@@ -575,7 +580,7 @@ Player.prototype.continue = function(callback) {
 Player.prototype._passPriority = function(callback) {
     $('.continue').remove();
     var $elem = $('<button>', {title:'Continue'})
-        .addClass("btn btn-lg btn-primary col-md-2 ml-2 mr-2 continue")
+        .addClass("btn btn-lg btn-primary ml-2 mr-2 continue")
         .append(
             $('<i>').addClass('fas fa-forward')
         )
