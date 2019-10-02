@@ -427,7 +427,7 @@ var CardView = Backbone.View.extend({
     mousemove: function(event) {
 
         var content = $('<div>')
-            .css('width', 120)
+            .css('width', 140)
             .append(
                 $('<div>').append(
                     $('<span>')
@@ -440,15 +440,22 @@ var CardView = Backbone.View.extend({
                         })
                         .text(this.model.get('mana_cost'))
                 ),
-                $('<div>').append(
+                $('<div>')
+                    .css({
+                        'font-style': 'italic',
+                        'padding-top': 4,
+                        'padding-bottom': 4
+                    })
+                    .append(
                     $('<span>')
-                        .css('font-style', 'italic')
                         .text(this.model.getTypes().join(' '))
                 ),
                 $('<div>').append(
-                    $('<p>').text(
-                        this.model.getText()
-                    )
+                    $('<p>')
+                        .css('font-size', '10px')
+                        .text(
+                            this.model.getText()
+                        )
                 ),
                 this.model.isType('creature') ? $('<div>').append(
                     $('<span>').html('&nbsp'),
