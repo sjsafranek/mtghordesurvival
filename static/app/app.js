@@ -21,13 +21,14 @@ var player = new Player();
 
 
 var deckLists = {
-    'Zombies': 'static/app/decks/zombies.csv',
-    '13 Demon Lords': 'static/app/decks/13-demon-lords.csv'
+    'Zombies': 'static/app/decks/zombies.tsv',
+    // https://www.mtgvault.com/thesilenttaco/decks/horde-the-13-demon-lords
+    '13 Demon Lords': 'static/app/decks/13-demon-lords.tsv'
 }
 
 
 function fetchDeckList(deckListUrl, callback) {
-    d3.csv(deckListUrl, function(d) {
+    d3.tsv(deckListUrl, function(d) {
             d.count = +d.count;
             return d;
         }).then(function(data) {
