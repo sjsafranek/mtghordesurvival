@@ -474,6 +474,19 @@ Player.prototype.updateCounts = function() {
 Player.prototype.takeTurn = function(callback) {
     var self = this;
 
+    // check if the game is over
+    var creatures = this.getZone('battlefield').filter(function(card) {
+        return card.isType('creature');
+    });
+    if (0 == this.getZone('library').length && 0 == creatures.length) {
+        swal.fire({
+            'type': 'info',
+            'title': 'You survived!'
+        });
+        return;
+    }
+    //.end
+
     this.addGameAction(
         new GameAction(
             "Turn - " + (this.number+1),
@@ -643,22 +656,6 @@ Player.prototype._mainPhase = function(callback) {
     }
 
     // Cast all spells from hand
-    // This must be done sequentially but use Promises for SweetAlert2
-    // https://css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
-    // this.zones.hand.reduce( (previousPromise, nextCard) => {
-    //     return previousPromise.then(() => {
-    //         return new Promise((resolve, reject) => {
-    //             return self.castSpell(nextCard, function(){
-    //                 resolve();
-    //                 // continue when no cards are left to cast
-    //                 if (0 == self.zones.hand.length) {
-    //                     self._passPriority(callback);
-    //                 }
-    //             });
-    //         });
-    //     });
-    // }, Promise.resolve());
-
     this._castSpells(
         this.getZone('hand').map(function(card) {
             return card;
