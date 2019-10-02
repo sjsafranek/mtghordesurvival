@@ -794,8 +794,8 @@ Player.prototype.castSpell = function(card, callback) {
         confirmButtonText: 'Resolve',
         cancelButtonText: 'Counter',
         allowEscapeKey: false,
-        allowOutsideClick: false,
-        animation: false
+        allowOutsideClick: false //,
+        // animation: false
     }).then(function(result){
         if (!result.value) {
             Swal.fire(
