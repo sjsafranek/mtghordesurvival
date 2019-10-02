@@ -157,41 +157,62 @@ Player.prototype.addListeners = function() {
         for (var name in self._cards) {
             inputOptions[name] = name;
         }
-        swal.fire({
+        Swal.queue([
+            {
                 title: 'Select a card',
                 input: 'select',
                 inputOptions: inputOptions,
                 inputPlaceholder: 'Select a card',
-                showCancelButton: true //,
+                showCancelButton: true,
                 // allowEscapeKey: false,
                 // allowOutsideClick: false
-        }).then(function(result) {
-            console.log(result.value);
-            if (result.value) {
-                var data = self._cards[result.value];
-                // self.resolveSpell(new Card(data));
-
-                var options = {};
-                for (var i=1; i<14; i++) {
-                    options[i] = i;
-                }
-
-                swal.fire({
-                        title: 'How many cards?',
-                        input: 'select',
-                        inputOptions: options,
-                        inputValue: '1',
-                        showCancelButton: true
-                    })
-                    .then(function(result) {
-                        if (result.value) {
-                            for (var i=0; i<parseInt(result.value); i++) {
-                                self.resolveSpell(new Card(data));
-                            }
-                        }
+                onBeforeOpen: () => {
+                    // sort select options alphabetically
+                    var options = $(Swal.getContent()).find('select option');
+                    var arr = options.map(function(_, o) { return { t: $(o).text(), v: o.value }; }).get();
+                    arr.sort(function(o1, o2) { return o1.t > o2.t ? 1 : o1.t < o2.t ? -1 : 0; });
+                    options.each(function(i, o) {
+                        o.value = arr[i].v;
+                        $(o).text(arr[i].t);
                     });
-
-
+                }
+            },
+            {
+                title: 'How many cards?',
+                input: 'select',
+                inputOptions: (function(){
+                    var options = {};
+                    for (var i=1; i<14; i++) {
+                        options[i] = i;
+                    }
+                    return options
+                })(),
+                inputValue: '1',
+                showCancelButton: true
+            }
+        ]).then(function(results) {
+            if (results.value) {
+                var cardName = results.value[0];
+                var num = parseInt(results.value[1]);
+                var callbacks = [];
+                for (var i=0; i<num; i++) {
+                    callbacks.push(
+                        function() {
+                            return new Promise((resolve, reject) => {
+                                self.castSpell( new Card(self._cards[cardName]), resolve );
+                            });
+                        }
+                    );
+                }
+                // cast card number of times
+                var promise = Promise.resolve();
+                callbacks.reduce( (previousPromise, clbk) => {
+                    return previousPromise.then(clbk);
+                }, promise);
+                promise.catch(function(err){
+                    console.log(err);
+                });
+                //.end
             }
         });
     });
@@ -259,7 +280,7 @@ Player.prototype.addListeners = function() {
                     })
                 }
             },
-            GameUtils.selectZoneOptions({exclude: [oldZone]})
+            GameUtils.selectZoneOptions({exclude: [oldZone], default: 'stack'})
         ]).then(function(result) {
             if (!result.value || result.dismiss) return;
             var cards = result.value[0];
@@ -267,7 +288,9 @@ Player.prototype.addListeners = function() {
             for (var i=0; i<cards.length; i++) {
                 var card = cards[i]
                 zone.remove(card);
-                if ('battlefield' == newZone) {
+                if ('stack' == newZone) {
+                    self.castSpell(card);
+                } else if ('battlefield' == newZone) {
                     self.resolveSpell(card);
                 } else {
                     self.zones[newZone].add(card);

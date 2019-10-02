@@ -337,7 +337,8 @@ var CardView = Backbone.View.extend({
         'tap': 'tap',
         'untap': 'untap',
         'destroy': 'destroy',
-        'mouseover': 'mouseover',
+        'mousemove': 'mousemove',
+        'mouseleave': 'mouseleave',
         'click .mtg-card-destroy-btn': 'destroyCard'
     },
 
@@ -419,9 +420,65 @@ var CardView = Backbone.View.extend({
         //.end
     },
 
-    mouseover: function(event) {
-        // console.log(this.model.getText());
-        // console.log(this.model.getPower(), this.model.getToughness());
+    mouseleave: function(event) {
+        toolTip.hide();
+    },
+
+    mousemove: function(event) {
+
+        var content = $('<div>')
+            .css('width', 140)
+            .append(
+                $('<div>').append(
+                    $('<span>')
+                        .css('font-weight', 'bold')
+                        .text(this.model.getName()),
+                    $('<span>')
+                        .css({
+                            'position': 'absolute',
+                            'right': 4
+                        })
+                        .text(this.model.get('mana_cost'))
+                ),
+                $('<div>')
+                    .css({
+                        'font-style': 'italic',
+                        'padding-top': 4,
+                        'padding-bottom': 4
+                    })
+                    .append(
+                    $('<span>')
+                        .text(this.model.getTypes().join(' '))
+                ),
+                $('<div>').append(
+                    $('<p>')
+                        .css('font-size', '10px')
+                        .text(
+                            this.model.getText()
+                        )
+                ),
+                this.model.isType('creature') ? $('<div>').append(
+                    $('<span>').html('&nbsp'),
+                    $('<span>')
+                        .css({
+                            'position': 'absolute',
+                            'right': 4
+                        })
+                        .text(
+                            this.model.getPower() + '/' + this.model.getToughness()
+                        )
+                    ) : ''
+            );
+
+        toolTip.moveTo(
+            event.originalEvent.pageX + 15,
+            event.originalEvent.pageY - 50
+        );
+        toolTip.setContent(
+            content.get(0).outerHTML
+        );
+        toolTip.show();
+
     },
 
     destroy: function(event, args) {
@@ -439,11 +496,15 @@ var CardView = Backbone.View.extend({
             return;
         }
 
-        var self = this;
-        console.log('TODO: animation based on zone',this.model.collection.name);
-        this.$el.hide('explode', { "pieces":25 }, 600, function() {
-            self.remove();
-        });
+        this.remove();
+
+        toolTip.hide();
+
+        // var self = this;
+        // console.log('TODO: animation based on zone',this.model.collection.name);
+        // this.$el.hide('explode', { "pieces":25 }, 600, function() {
+        //    self.remove();
+        // });
     },
 
     isTapped: function() {

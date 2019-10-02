@@ -15,10 +15,11 @@ var GameUtils = {
                 graveyard: 'graveyard',
                 library: 'library',
                 hand: 'hand',
-                battlefield: 'battlefield'
+                battlefield: 'battlefield',
+                stack: 'stack'
             },
             inputPlaceholder: 'Select a zone',
-            inputValue: opts.default || null,
+            inputValue: opts.default || undefined,
             showCancelButton: true,
             allowEscapeKey: false,
             allowOutsideClick: false
