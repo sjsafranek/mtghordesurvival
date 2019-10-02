@@ -634,12 +634,6 @@ var CardGroupView = Backbone.View.extend({
             this.$el.on(i, this._listeners[i]);
         }
 
-        // this.$el.on('contextmenu', this._oncontextmenu);
-        // this.$el.on('dblclick', this._dblclick);
-        // this.$el.on('click', this._click);
-        // this.$el.on('onmouseleave', this._onmouseleave);
-        // this.$el.on('onmousemove', this._onmousemove);
-        // this.$el.on('mouseup', this._click);
     },
 
     mouseleave: function(event) {
