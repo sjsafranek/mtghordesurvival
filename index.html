@@ -133,6 +133,37 @@
         <script src="static/backbone/backbone.localStorage-min.js"></script>
 
 
+
+
+
+
+
+
+        <script type="text/template" id="card_tooltip">
+            <div class="card-tooltip">
+                <div class="card-tooltip-header">
+                    <span class="card-tooltip-name"><%= name %></span>
+                    <span class="card-tooltip-manacost"><%= mana_cost %></span>
+                </div>
+                <div class="card-tooltip-types">
+                    <span> <%= type_line %> </span>
+                </div>
+                <div class="card-tooltip-text">
+                    <p> <%= oracle_text %> </p>
+                </div>
+                <div >
+                    &nbsp;
+                    <span class="card-tooltip-stats">
+                        <%= power %>/<%= toughness %>
+                    </span>
+                </div>
+            </div>
+        </script>
+
+
+
+
+
         <script type="text/template" id="card_template">
 
             <svg width="156" height="210" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -168,6 +199,7 @@
                         d="M25 43a1 1 0 0 1 0 2h-5a1 1 0 0 1 0-2h5zm5-12v2.087l-.003-.001-.002.063A2 2 0 0 1 28 35h-3.5v7h-4v-7H17a2 2 0 0 1-1.998-1.914l-.002.001V31h15zM22.443 0L28 7.627V30h-4.796V7.627c-.134-.261-.368-.392-.704-.392-.336 0-.549.13-.64.392V30H17V7.627L22.443 0z"/>
                 </g>
             </svg>
+
 
         </script>
 

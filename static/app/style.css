@@ -274,3 +274,41 @@ https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlig
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Opera and Firefox */
 }
+
+
+
+
+.card-tooltip {
+    width: 200px;
+}
+
+.card-tooltip-header {
+    font-size: 14px;
+}
+
+.card-tooltip-name {
+    font-weight: bold;
+}
+
+.card-tooltip-manacost {
+    position: absolute;
+    right: 4;
+}
+
+.card-tooltip-types {
+   font-size: 12px;
+   font-style: italic;
+   padding-top: 4;
+   padding-bottom: 4;
+}
+
+.card-tooltip-text {
+   font-size: 12px;
+}
+
+.card-tooltip-stats {
+    font-weight: bold;
+    font-size: 12px;
+    position: absolute;
+    right: 4;
+}

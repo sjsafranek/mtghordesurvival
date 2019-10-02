@@ -425,60 +425,14 @@ var CardView = Backbone.View.extend({
     },
 
     mousemove: function(event) {
-
-        var content = $('<div>')
-            .css('width', 140)
-            .append(
-                $('<div>').append(
-                    $('<span>')
-                        .css('font-weight', 'bold')
-                        .text(this.model.getName()),
-                    $('<span>')
-                        .css({
-                            'position': 'absolute',
-                            'right': 4
-                        })
-                        .text(this.model.get('mana_cost'))
-                ),
-                $('<div>')
-                    .css({
-                        'font-style': 'italic',
-                        'padding-top': 4,
-                        'padding-bottom': 4
-                    })
-                    .append(
-                    $('<span>')
-                        .text(this.model.getTypes().join(' '))
-                ),
-                $('<div>').append(
-                    $('<p>')
-                        .css('font-size', '10px')
-                        .text(
-                            this.model.getText()
-                        )
-                ),
-                this.model.isType('creature') ? $('<div>').append(
-                    $('<span>').html('&nbsp'),
-                    $('<span>')
-                        .css({
-                            'position': 'absolute',
-                            'right': 4
-                        })
-                        .text(
-                            this.model.getPower() + '/' + this.model.getToughness()
-                        )
-                    ) : ''
-            );
-
+        var _template = _.template($('#card_tooltip').html());
+        content = _template(this.model.attributes);
         toolTip.moveTo(
-            event.originalEvent.pageX + 15,
+            event.originalEvent.pageX + 25,
             event.originalEvent.pageY - 50
         );
-        toolTip.setContent(
-            content.get(0).outerHTML
-        );
+        toolTip.setContent(content);
         toolTip.show();
-
     },
 
     destroy: function(event, args) {
@@ -657,21 +611,50 @@ var CardGroupView = Backbone.View.extend({
         var self = this;
         this.cards = {};
         this.$el.hide();
-        this._listeners = {};
-        this._oncontextmenu = function(e) {
-            self.contextMenu(e);
-        }
-        this._dblclick = function(e) {
-            self.dblclick(e);
-        }
-        this._click = function(e) {
-            self.click(e);
+
+        this._listeners = {
+            contextmenu: function(e) {
+                self.contextMenu(e);
+            },
+            dblclick: function(e) {
+                self.dblclick(e);
+            },
+            click: function(e) {
+                self.click(e);
+            },
+            mouseleave: function(e) {
+                self.mouseleave(e);
+            },
+            mousemove: function(e) {
+                self.mousemove(e);
+            }
+        };
+
+        for (var i in this._listeners) {
+            this.$el.on(i, this._listeners[i]);
         }
 
-        this.$el.on('contextmenu', this._oncontextmenu);
-        this.$el.on('dblclick', this._dblclick);
-        this.$el.on('click', this._click);
+        // this.$el.on('contextmenu', this._oncontextmenu);
+        // this.$el.on('dblclick', this._dblclick);
+        // this.$el.on('click', this._click);
+        // this.$el.on('onmouseleave', this._onmouseleave);
+        // this.$el.on('onmousemove', this._onmousemove);
         // this.$el.on('mouseup', this._click);
+    },
+
+    mouseleave: function(event) {
+        toolTip.hide();
+    },
+
+    mousemove: function(event) {
+        var _template = _.template($('#card_tooltip').html());
+        content = _template(this.getCard().attributes);
+        toolTip.moveTo(
+            event.originalEvent.pageX + 25,
+            event.originalEvent.pageY - 50
+        );
+        toolTip.setContent(content);
+        toolTip.show();
     },
 
     destroyCard: function(event) {

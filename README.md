@@ -1,5 +1,6 @@
 # mtghordesurvival
 
+
 ## Description
 A simple web application that runs the Horde Survival format for Magic The Gathering. It uses the ScryFall API to pull card images and data.
 
@@ -11,7 +12,7 @@ Uses the deck list from:
 
 
 ## Installation
-No installation is needed. This app can be run running it on any simple HTTP server or by using included simpleserver.go script
+No installation is required. This app can be run running it on any HTTP server (Apache, NGINX, etc.) or by running the included simpleserver.go script provided.
 
 
 ### Simple HTTP server
