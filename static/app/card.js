@@ -913,9 +913,7 @@ var CardGroupView = Backbone.View.extend({
         } else {
             this._ungroup();
         }
-        this.$el.find('.mtg-card-count')
-            .empty()
-            .append(this.size());
+        this.updateGroupNumber();
     },
 
     hasCard: function(card) {
@@ -955,7 +953,7 @@ var CardGroupView = Backbone.View.extend({
             this._rendered = true;
         }
 
-        this.$el.find('.mtg-card-count').empty().append(this.size());
+        this.updateGroupNumber();
 
         this.$el.show();
     },
@@ -968,5 +966,20 @@ var CardGroupView = Backbone.View.extend({
             .empty()
             .append(this.size());
         (2 > this.size()) && this.$el.hide();
+    },
+
+    updateGroupNumber: function() {
+        if (this.size() > 1)
+        {
+            this.$el.find('.mtg-card-count').empty().append(this.size());
+            this.$el.find('.mtg-card-count-circle').attr('opacity',0.3);
+        }
+        else
+        {
+            this.$el.find('.mtg-card-count').empty();
+            // remove card count circle as well
+            this.$el.find('.mtg-card-count-circle').attr('opacity', 0);
+        }
+
     }
 });

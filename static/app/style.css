@@ -1,7 +1,8 @@
 body {
     background-color: black;
     color: #e1e1e1;
-    font-family: 'Zombie Guts', serif;
+    /* font-family: 'Zombie Guts', serif; */
+    font-family: 'Roboto', sans-serif;
 }
 
 .controls {
