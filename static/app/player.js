@@ -368,8 +368,16 @@ Player.prototype.addListeners = function() {
 
             // HACK
             for (var i in self.groups) {
-                self.groups[i].$el.addClass('selected')
+                self.groups[i].$el.addClass('selected');
             }
+        }
+
+        // ctrl+->
+        // HACK
+        if (e.ctrlKey && 39 == e.which) {
+            $('#nextTurn').is(':visible') && $('#nextTurn').click();
+            console.log('next step');
+            $('.continue').click();
         }
 
 
