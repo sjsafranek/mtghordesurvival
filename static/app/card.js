@@ -347,6 +347,10 @@ var CardView = Backbone.View.extend({
         this.moveTo(null, {zone: 'graveyard'});
     },
 
+    getCard: function() {
+        return this.model;
+    },
+
     // HACK
     joinGroup: function(){
         if (!player) return;
@@ -384,7 +388,6 @@ var CardView = Backbone.View.extend({
                 this.$el.addClass('tapped') : this.$el.removeClass('tapped');
         }
 
-
         // combat
         // allow for tap animation to complete
         undefined != changed.__attacking && changed.__attacking && this._attack();
@@ -405,12 +408,6 @@ var CardView = Backbone.View.extend({
             changed.__selected ?
                 this.$el.addClass('selected') : this.$el.removeClass('selected');
         }
-
-        // // damage
-        // if (undefined != changed.__damage && this.model.isType('creature')) {
-        //     changed.__damage >= this.model.getToughness() ?
-        //         this.$el.addClass('leathal-damage') : this.$el.removeClass('leathal-damage');
-        // }
 
         // group
         if (undefined != changed.__grouped) {
@@ -453,12 +450,6 @@ var CardView = Backbone.View.extend({
         this.remove();
 
         toolTip.hide();
-
-        // var self = this;
-        // console.log('TODO: animation based on zone',this.model.collection.name);
-        // this.$el.hide('explode', { "pieces":25 }, 600, function() {
-        //    self.remove();
-        // });
     },
 
     isTapped: function() {
@@ -523,7 +514,6 @@ var CardView = Backbone.View.extend({
         };
         this.model.isTapped() ? (inputOptions.untap = "Untap") : (inputOptions.tap = "Tap");
         this.model.isAttacking() && (inputOptions.nocombat = "Remove from combat");
-        // this.model.isType('creature') && (inputOptions.damage = "Damage");
 
         swal.fire({
                 title: 'Select Action',
@@ -557,20 +547,6 @@ var CardView = Backbone.View.extend({
                             return self.putIntoLibaryTop();
                         case 'putintolibrarybottom':
                             return self.putIntoLibraryBottom();
-                        // case 'damage':
-                        //     return Swal.fire({
-                        //         title: "Set damage",
-                        //         input: "number",
-                        //         inputValue: self.model.getDamage()
-                        //     }).then(function(result) {
-                        //         if (result.value) {
-                        //             var action = self.model.setDamage(
-                        //                 parseInt(result.value)
-                        //             );
-                        //             player.addGameAction(action);
-                        //         }
-                        //     });
-
                         default:
                             console.log(result);
                     }
@@ -904,6 +880,7 @@ var CardGroupView = Backbone.View.extend({
         this.$el.find('.mtg-card-destroy-btn').on('dblclick', function(event) {
             event.stopPropagation();
         });
+
     },
 
     removeCard: function(card) {

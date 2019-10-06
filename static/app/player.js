@@ -57,6 +57,7 @@ var Player = function(options) {
         var $container = $('<div>')
             .addClass('mtgcard noselect')
             .addClass(card.getTypes().join(' '))
+            .attr('name', card.getName())
             .hide();
 
         if (card.isType('creature')) {
@@ -71,7 +72,6 @@ var Player = function(options) {
             el: $container,
             model: card
         });
-
     });
 
     this.zones.battlefield.on('remove', function(card) {
@@ -80,9 +80,48 @@ var Player = function(options) {
         });
     });
 
+    // sort
+    $('.battlefield .creatures').on('DOMNodeInserted', function(event) {
+        self.sortCardElementsByName(event);
+    });
+    $('.battlefield .noncreatures').on('DOMNodeInserted', function(event) {
+        self.sortCardElementsByName(event);
+    });
+    $('.battlefield .combatZone').on('DOMNodeInserted', function(event) {
+        self.sortCardElementsByName(event);
+    });
+    //.end
 
     this.updateCounts();
     this.addListeners();
+}
+
+Player.prototype._sortCardElementsByName = function($zoneElement) {
+    $zoneElement.find('.mtgcard').sort(function (a, b) {
+            var card_a = $(a).attr('name');
+            var card_b = $(b).attr('name');
+            if (card_a < card_b) return -1;
+            if (card_a > card_b) return  1;
+            return 0;
+        })
+        .appendTo($zoneElement);
+}
+
+Player.prototype.sortCardElementsByName = function(event) {
+    var self = this;
+    if (this._lock) return;
+    this._lock = true;
+    // this._sortTimeout && clearTimeout(this._sortTimeout);
+    this._sortTimeout = setTimeout(function() {
+        event && console.log(event.target);
+        var zone1 = $('.battlefield .creatures');
+        var zone2 = $('.battlefield .noncreatures');
+        var zone3 = $('.battlefield .combatZone');
+        self._sortCardElementsByName(zone1);
+        self._sortCardElementsByName(zone2);
+        self._sortCardElementsByName(zone3);
+        self._lock = false;
+    }, 250);
 }
 
 Player.prototype.addCard = function(cardData) {
@@ -691,7 +730,6 @@ Player.prototype.combatPhase = function(callback) {
     }));
 
     this._passPriority(function(){
-
         // self._passPriority(function(){
 
             var creatures = self.zones.battlefield.filter(function(card) {
@@ -869,6 +907,7 @@ Player.prototype.getGroup = function(card) {
             el: $('<div>', {id: _hsh})
                 .addClass('mtgcard mtgcard-group noselect')
                 .addClass(card.getTypes().join(' '))
+                .attr('name', card.getName())
                 .hide()
         });
         if (card.isType('creature')) {
@@ -880,6 +919,7 @@ Player.prototype.getGroup = function(card) {
                 this.groups[_hsh].$el
             );
         }
+        // this.sortCardElementsByName();
     }
     return this.groups[_hsh];
 }
