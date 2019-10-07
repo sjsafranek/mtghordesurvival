@@ -367,12 +367,16 @@ var CardView = Backbone.View.extend({
     },
 
     _attack: function() {
+        $('.combatZone').append(this.$el);
         this.$el.addClass('attacking');
+        player.sortCardElementsByName();
     },
 
     _nocombat: function() {
+        $('.creatures').append(this.$el);
         this.$el.removeClass('attacking');
         this.$el.removeClass('blocking');
+        player.sortCardElementsByName();
     },
 
     onChange: function(event) {
@@ -391,16 +395,18 @@ var CardView = Backbone.View.extend({
         // combat
         // allow for tap animation to complete
         undefined != changed.__attacking && changed.__attacking && this._attack();
-        undefined != changed.__attacking && changed.__attacking && setTimeout(function(){
-            $('.combatZone').append(self.$el);
-        },300);
+        // undefined != changed.__attacking && changed.__attacking && setTimeout(function(){
+        //     $('.combatZone').append(self.$el);
+        //     player.sortCardElementsByName();
+        // },300);
 
         // remove from combat
-        var nocombat = function() {
-           $('.creatures').append(self.$el);
-            self._nocombat();
-       }
-        undefined != changed.__attacking && !changed.__attacking && nocombat();
+    //     var nocombat = function() {
+    //        $('.creatures').append(self.$el);
+    //        self._nocombat();
+    //        player.sortCardElementsByName();
+    //    }
+        undefined != changed.__attacking && !changed.__attacking && this._nocombat();
 
 
         // selected
@@ -566,9 +572,8 @@ var CardView = Backbone.View.extend({
     },
 
     render: function(){
-        // this.$el.hide();
+        player.sortCardElementsByName();
         this.$el.html(this.template(this.model.attributes));
-        // undefined != this.group && this.$el.fadeIn();
         return this;
     }
 
@@ -851,12 +856,16 @@ var CardGroupView = Backbone.View.extend({
     },
 
     _attack: function() {
+        $('.combatZone').append(this.$el);
         this.$el.addClass('attacking');
+        player.sortCardElementsByName();
     },
 
     _nocombat: function() {
+        $('.creatures').append(this.$el);
         this.$el.removeClass('attacking');
         this.$el.removeClass('blocking');
+        player.sortCardElementsByName();
     },
 
     addCard: function(card) {

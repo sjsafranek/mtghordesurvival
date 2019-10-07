@@ -81,15 +81,15 @@ var Player = function(options) {
     });
 
     // sort
-    $('.battlefield .creatures').on('DOMNodeInserted', function(event) {
-        self.sortCardElementsByName(event);
-    });
-    $('.battlefield .noncreatures').on('DOMNodeInserted', function(event) {
-        self.sortCardElementsByName(event);
-    });
-    $('.battlefield .combatZone').on('DOMNodeInserted', function(event) {
-        self.sortCardElementsByName(event);
-    });
+    // $('.battlefield .creatures').on('DOMNodeInserted', function(event) {
+    //     self.sortCardElementsByName(event);
+    // });
+    // $('.battlefield .noncreatures').on('DOMNodeInserted', function(event) {
+    //     self.sortCardElementsByName(event);
+    // });
+    // $('.battlefield .combatZone').on('DOMNodeInserted', function(event) {
+    //     self.sortCardElementsByName(event);
+    // });
     //.end
 
     this.updateCounts();
@@ -109,10 +109,10 @@ Player.prototype._sortCardElementsByName = function($zoneElement) {
 
 Player.prototype.sortCardElementsByName = function(event) {
     var self = this;
-    if (this._lock) return;
-    this._lock = true;
+    // if (this._lock) return;
+    // this._lock = true;
     // this._sortTimeout && clearTimeout(this._sortTimeout);
-    this._sortTimeout = setTimeout(function() {
+    // this._sortTimeout = setTimeout(function() {
         event && console.log(event.target);
         var zone1 = $('.battlefield .creatures');
         var zone2 = $('.battlefield .noncreatures');
@@ -121,7 +121,7 @@ Player.prototype.sortCardElementsByName = function(event) {
         self._sortCardElementsByName(zone2);
         self._sortCardElementsByName(zone3);
         self._lock = false;
-    }, 250);
+    // }, 250);
 }
 
 Player.prototype.addCard = function(cardData) {
